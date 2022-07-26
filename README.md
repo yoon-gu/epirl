@@ -7,3 +7,7 @@
 (epi) $ pip install mesa
 (epi) $ conda install scipy matplotlib
 ```
+
+```bash
+$ mesa runserver mesa/SIR
+```

@@ -1,7 +1,7 @@
 from mesa.visualization.modules import CanvasGrid, ChartModule
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
-from SIRModel import SIRModel
+from sir import SIRModel
 
 from scipy import stats
 dist_list = [stats.uniform(2,8), stats.norm(loc=5, scale=1)]
@@ -44,4 +44,3 @@ model_params = {"N":UserSettableParameter('slider', 'Population', 400, 100, 1000
 server = ModularServer(SIRModel, [grid, chart], "SIR Model", model_params)
 
 server.port = 8521
-server.launch()
