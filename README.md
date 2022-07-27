@@ -9,5 +9,5 @@
 ```
 
 ```bash
-$ mesa runserver mesa/SIR
+$ mesa runserver mesa_examples/SIR
 ```
