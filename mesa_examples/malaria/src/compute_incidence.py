@@ -136,7 +136,7 @@ class compute_incidence():
     def plot_incidence(self):
 
         # Load incidence data
-        incidence_data = pd.read_csv('../../pipeline/data_analysis/compute_case_region_year/case_region_week.csv')
+        incidence_data = pd.read_csv('../../data/case_region_week.csv')
         incidence_data_init = incidence_data[incidence_data['연도'] > self.year_init]
 
         prop_cycle = plt.rcParams['axes.prop_cycle']

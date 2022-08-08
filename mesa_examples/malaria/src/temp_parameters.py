@@ -1,4 +1,5 @@
 import numpy as np
+import numpy_financial as npf
 
 
 def biting(temperature):
@@ -82,7 +83,7 @@ def maturation(temperature, rainfall_avg):
     R = rainfall_avg
 
     # Initialize
-    maturation_rate = np.rate((n_temp,))
+    maturation_rate = npf.rate((n_temp,))
 
     for i in range(n_temp):
 
