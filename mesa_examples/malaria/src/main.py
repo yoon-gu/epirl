@@ -23,8 +23,8 @@ if __name__ == '__main__':
     dt = 0.1
 
     # Result path
-    result_path = '../../result/malaria3_by'
-    suffix = ''
+    # result_path = '../../result/malaria3'
+    # suffix = ''
 
     # Time span
     year_span = np.arange(year_init, year_termi + 1)
@@ -96,8 +96,9 @@ if __name__ == '__main__':
               'mu_v': mu_v,
               'delta_v': delta_v,
 
-              'result_path': result_path,
-              'suffix': suffix}
+              # 'result_path': result_path,
+              # 'suffix': suffix
+                }
 
     # Check computing time
     t_start = time.time()

@@ -7,13 +7,13 @@ class compute_incidence():
 
     def __init__(self, model):
 
-        # Assign paramters
+        # Assign parameters
         self.year_init = model.year_init
         self.year_termi = model.year_termi
         self.day_init = model.day_init
         self.dt = model.dt
 
-        # Solutions
+        # Solution
         t_init = model.tau * model.n_step_per_day
         n_step = t_init + len(model.tspan)
         self.S_h = np.zeros([n_step])
@@ -32,28 +32,28 @@ class compute_incidence():
             state_j = human_id % 10
 
             if state_j == 0:
-                self.S_h += model.scheduel.agents[j].sol
+                self.S_h += model.schedule.agents[j].sol
             elif state_j == 1:
-                self.E_h += model.scheduel.agents[j].sol
+                self.E_h += model.schedule.agents[j].sol
             elif state_j == 2:
-                self.I_h += model.scheduel.agents[j].sol
+                self.I_h += model.schedule.agents[j].sol
             elif state_j == 3:
-                self.T_h += model.scheduel.agents[j].sol
+                self.T_h += model.schedule.agents[j].sol
 
-        # Loop over vector agnets
+        # Loop over mosquito agents
         for j in model.unique_id_v:
 
             vector_id = model.schedule.agents[j].vector_id
             state_j = vector_id % 10
 
             if state_j == 0:
-                self.A += model.scheduel.agents[j].sol
+                self.A += model.schedule.agents[j].sol
             elif state_j == 1:
-                self.S_v += model.scheduel.agents[j].sol
+                self.S_v += model.schedule.agents[j].sol
             elif state_j == 2:
-                self.E_v += model.scheduel.agents[j].sol
+                self.E_v += model.schedule.agents[j].sol
             elif state_j == 3:
-                self.I_v += model.scheduel.agents[j].sol
+                self.I_v += model.schedule.agents[j].sol
 
         self.b_history0 = model.b_history0
         self.mu_a_history0 = model.mu_a_history0
@@ -64,14 +64,14 @@ class compute_incidence():
         self.n_step_per_day = model.n_step_per_day
         self.tau = model.tau
 
-        self.result_path = model.result_path
-        self.suffix = model.suffix
+        # self.result_path = model.result_path
+        # self.suffix = model.suffix
 
         self.b = model.b_history
 
         self.N_h = self.S_h + self.E_h + self.I_h + self.T_h
         self.N_v = self.S_v + self.E_v + self.I_v
-        
+
         self.n_year = self.year_termi - self.year_init + 1
         self.n_step_delay = model.tau * model.n_step_per_day
         self.n_step = len(model.tspan)
@@ -86,13 +86,10 @@ class compute_incidence():
             index_long = i + (self.n_step_delay - model.tau_l * model.n_step_per_day)
             index_relapse = i + (self.n_step_delay - model.tau_r * model.n_step_per_day)
 
-            # p * b * beta_hv * I_v / N_h * S_h * exp(delta - tau_s)
             incidence_short[i] = (model.p * self.b[index_short] * model.beta_hv * self.I_v[index_short]
                                   / self.N_h[index_short] * self.S_h[index_short] * np.exp(-model.delta_h * model.tau_s))
-            # (1-p) * b * beta_hv * I_v / N_h * S_h * exp(delta - tau_l)
             incidence_long[i] = ((1 - model.p) * self.b[index_long] * model.beta_hv * self.I_v[index_long]
                                  / self.N_h[index_long] * self.S_h[index_long] * np.exp(-model.delta_h * model.tau_l))
-            # q * rho * T_h * exp(delta - tau_r)            
             incidence_relapse[i] = model.q * model.rho_h * self.T_h[index_relapse] * np.exp(-model.delta_h * model.tau_r)
 
         incidence_total = incidence_short + incidence_long + incidence_relapse
@@ -136,7 +133,7 @@ class compute_incidence():
     def plot_incidence(self):
 
         # Load incidence data
-        incidence_data = pd.read_csv('../../data/case_region_week.csv')
+        incidence_data = pd.read_csv('../data/case_region_week.csv')
         incidence_data_init = incidence_data[incidence_data['연도'] > self.year_init]
 
         prop_cycle = plt.rcParams['axes.prop_cycle']
@@ -157,7 +154,7 @@ class compute_incidence():
         ax1.set_ylabel('Population')
         ax2.set_ylabel('Population')
         ax1.set_title('Human')
-        plt.savefig('{}/human{}.eps'.format(self.result_path, self.suffix), format='eps')
+        # plt.savefig('{}/human{}.eps'.format(self.result_path, self.suffix), format='eps')
         plt.show()
 
         fig, ax1 = plt.subplots()
@@ -175,7 +172,7 @@ class compute_incidence():
         ax1.set_ylabel('Population')
         ax2.set_ylabel('Population')
         ax1.set_title('Mosquito')
-        plt.savefig('{}/mosquito{}.eps'.format(self.result_path, self.suffix), format='eps')
+        # plt.savefig('{}/mosquito{}.eps'.format(self.result_path, self.suffix), format='eps')
         plt.show()
 
         fig, ax = plt.subplots()
@@ -188,7 +185,7 @@ class compute_incidence():
         ax.legend(['Data', 'Short', 'Long', 'Relapse', 'Total'], loc='upper left')
         ax.set_xlabel('Week')
         ax.set_ylabel('Cases')
-        plt.savefig('{}/incidence_week{}.eps'.format(self.result_path, self.suffix), format='eps')
+        # plt.savefig('{}/incidence_week{}.eps'.format(self.result_path, self.suffix), format='eps')
         plt.show()
 
         fig, ax = plt.subplots()
@@ -198,17 +195,17 @@ class compute_incidence():
         ax.legend(['Data', 'Total'], loc='upper left')
         ax.set_xlabel('Year')
         ax.set_ylabel('Cases')
-        plt.savefig('{}/incidence_year{}.eps'.format(self.result_path, self.suffix), format='eps')
+        # plt.savefig('{}/incidence_year{}.eps'.format(self.result_path, self.suffix), format='eps')
         plt.show()
 
         # Save to csv
         df = pd.DataFrame(np.concatenate(([self.b_history0], [self.mu_a_history0], [self.delta_a_history0],
                                           [self.mu_v_history0], [self.delta_v_history0])).T,
                           columns=['b', 'mu_a', 'delta_a', 'mu_v', 'delta_v'])
-        df.to_csv('{}/temp_param{}.csv'.format(self.result_path, self.suffix), index=False)
+        # df.to_csv('{}/temp_param{}.csv'.format(self.result_path, self.suffix), index=False)
 
         # Save to csv
         df = pd.DataFrame(np.concatenate(([self.S_h], [self.E_h], [self.I_h], [self.T_h], [self.A], [self.S_v],
                                           [self.E_v], [self.I_v])).T, columns=['S_h', 'E_h', 'I_h', 'T_h', 'A',
                                                                                'S_v', 'E_v', 'I_v'])
-        df.to_csv('{}/state{}.csv'.format(self.result_path, self.suffix), index=False)
+        # df.to_csv('{}/state{}.csv'.format(self.result_path, self.suffix), index=False)
