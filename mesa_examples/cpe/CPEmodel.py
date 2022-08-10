@@ -237,33 +237,6 @@ class CPE_Model(Model):
             self.grid.place_agent(d, (d.x, d.y))
 
 
-
-        """
-        The Great Wall
-        # for j in range(2,20):
-        #     if j not in range(10,13):
-        #         b = Wall(-100-j, self, colonized = False, x = j, y = 5)
-        #         #self.schedule.add(b)
-        #         self.grid.place_agent(b, (b.x, b.y))
-
-        # for j in range(-num_Goo-num_HCWs, -num_HCWs):
-        #     tempx = self.random.randrange(self.grid.width)
-        #     tempy = self.random.randrange(self.grid.height)
-        #     same_as_bed = False
-        #     for k in range(self.num_Patients):
-        #         if (2*(k%6)+1,(k//6)*3+1) == (tempx, tempy):
-        #             same_as_bed = True
-        #     while same_as_bed == True:
-        #         tempx = self.random.randrange(self.grid.width)
-        #         tempy = self.random.randrange(self.grid.height)
-        #         same_as_bed = False
-        #         for k in range(self.num_Patients):
-        #             if (2*(k%6)+1,(k//6)*3+1) == (tempx, tempy):
-        #                 same_as_bed = True
-        """
-
-
-
         self.datacollector = DataCollector(
             model_reporters={"Number of Patients sick": getNumSick,
                     "Number of HCW colonized": getNumColonized,
@@ -313,23 +286,6 @@ class CPE_Model(Model):
             self.schedule.remove(ex_patient)
             self.discharged.remove(ex_patient)
 
-            # add a new patient in place of old patient
-            #def __init__(self, unique_id, model, colonized, x, y):
-        
-        #Instead of prob for each bed, make it into prob for entire ward
-        """if not not self.empty_beds: #if empty_beds is not empty
-            incoming = np.random.choice([1,0], p = [self.prob_new_patient, 1-self.prob_new_patient])
-            if (incoming == 1):
-                bed = self.empty_beds.pop() # 
-                tempx, tempy = bed # unpack the tuple
-                new_patient = Patient(self.num_Patients + self.cumul_patients, self, colonized = False, x = tempx, y = tempy)
-                self.schedule.add(new_patient)
-                self.grid.place_agent(new_patient, (tempx, tempy))
-                self.cumul_patients += 1
-                if new_patient.colonized == True:
-                    self.cumul_sick_patients += 1
-        """
-        
         """Move patients to Isolated beds"""
         if self.isolate_sick:
             for bed in self.shared_beds: # 7-person room
@@ -351,12 +307,12 @@ class CPE_Model(Model):
                                         healthyguy = icellmate
                                         self.grid.move_agent(sickguy, (ibed.x, ibed.y))
                                         self.grid.move_agent(healthyguy, (bed.x, bed.y))
-                                        ibed.checkFilled() # to label the bed filled
+                                        checkFilled(ibed) # to label the bed filled
                                         break # we don't need to consider other icellmates
                                 break # we don't need to consider other beds
                             else: # not filled
                                 self.grid.move_agent(sickguy, (ibed.x, ibed.y))
-                                ibed.checkFilled() # to label the bed filled
+                                checkFilled(ibed) # to label the bed filled
                                 break
                         
                 else:

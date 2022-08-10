@@ -7,6 +7,19 @@ from routes import length_stay
 ICUA = ['A14','A15','A1','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','A12','A13']
 ICUB = ['B14','B15','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','B11','B12','B13']
 
+def checkFilled(ahsdf):
+    ahsdf.filled = False
+    ahsdf.filledSick = False #reset
+    cellmates = ahsdf.model.grid.get_cell_list_contents([ahsdf.pos])
+    if len(cellmates)>1:
+        for cellmate in cellmates:
+            if cellmate.isPatient:
+                ahsdf.filled = True
+                if ahsdf.filled and cellmate.positive:
+                    ahsdf.filledSick = True
+
+                break # other contents of bed doesn't matter
+
 ###
 def room2coord(room): # Outputs
         
@@ -337,7 +350,6 @@ class Patient(CPE_Agent):
     
 #%%
 
-
 class Environment(CPE_Agent):
     """ An agent with colonized status.
     Cannot move and does not leave."""
@@ -374,7 +386,7 @@ class Bed(Environment):
         self.isIsolatedBed = False
 
     def step(self):
-        self.checkFilled()
+        checkFilled(self)
         if not self.filled:
             incoming = np.random.choice([1,0], p = [self.model.prob_new_patient, 1-self.model.prob_new_patient])
             if (incoming == 1):
@@ -389,21 +401,10 @@ class Bed(Environment):
         else:
             if (self.x, self.y) in self.model.empty_beds: # without checking element in set, there could be error. 
                 self.model.empty_beds.remove((self.x, self.y)) 
-        self.checkFilled()
+        checkFilled(self)
         # if self.filled == False:
         #     self.colonized = False
-    def checkFilled(self):
-        self.filled = False
-        self.filledSick = False #reset
-        cellmates = self.model.grid.get_cell_list_contents([self.pos])
-        if len(cellmates)>1:
-            for cellmate in cellmates:
-                if cellmate.isPatient:
-                    self.filled = True
-                    if self.filled and cellmate.positive:
-                        self.filledSick = True
- 
-                    break # other contents of bed doesn't matter
+    
         
 
 
@@ -417,7 +418,7 @@ class IsolatedBed(Bed):
         self.isIsolatedBed = True
         
     def step(self):
-        self.checkFilled()
+        checkFilled(self)
         if not self.filled:
             incoming = np.random.choice([1,0], p = [self.model.prob_new_patient, 1-self.model.prob_new_patient])
             if (incoming == 1):
@@ -432,7 +433,7 @@ class IsolatedBed(Bed):
         else: # not empty anymore!
             if (self.x, self.y) in self.model.empty_beds: # without checking element in set, there could be error. 
                 self.model.empty_beds.remove((self.x, self.y)) 
-        self.checkFilled()
+        checkFilled(self)
         #print("Bed {}. Filled: {}, FilledSick: {}".format(self.unique_id, self.filled, self.filledSick))
         
         #if self.filled == False:
@@ -456,7 +457,7 @@ class Goo(Environment):
         self.colonized = False
         
     def step(self):
-        #self.checkFilled()
+        #checkFilled(self)
         self.clean_tick -= 1
         
         if (self.clean_tick <= 0):
