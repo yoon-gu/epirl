@@ -23,8 +23,8 @@ if __name__ == '__main__':
     dt = 0.1
 
     # Result path
-    result_path = '../../result/malaria3_by'
-    suffix = ''
+    # result_path = '../../result/malaria3'
+    # suffix = ''
 
     # Time span
     year_span = np.arange(year_init, year_termi + 1)
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     tspan_vsupply = np.reshape(tspan_vsupply, np.prod(np.shape(tspan_vsupply)))
 
     # Load human demographic data
-    demographic_data = pd.read_csv('../../../../cost_effective_rdt/pipeline/prep/demographic_2013-2018_avg.csv',
+    demographic_data = pd.read_csv('../data/demographic_2013-2018_avg.csv',
                                    names=['rate'])
 
     N_h0 = demographic_data.loc[0].values[0]
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     death_rate = demographic_data.loc[2].values[0]
 
     # Load climate data
-    climate_data = pd.read_csv('../../../cost_effective_rdt/pipeline/prep/climate_2013-2018.csv',
+    climate_data = pd.read_csv('../data/climate_2013-2018.csv',
                                names=['Date', 'Temperature', 'Rainfall'])
 
     # Temperature dependent parameters
@@ -96,8 +96,9 @@ if __name__ == '__main__':
               'mu_v': mu_v,
               'delta_v': delta_v,
 
-              'result_path': result_path,
-              'suffix': suffix}
+              # 'result_path': result_path,
+              # 'suffix': suffix
+                }
 
     # Check computing time
     t_start = time.time()

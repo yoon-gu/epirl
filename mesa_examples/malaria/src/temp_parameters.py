@@ -63,26 +63,26 @@ def mature_death(temperature):
 
         if temp_i > 15:
             if temp_i < 32:
-                death_rate[i] = 1/30
+                death_rate[i] = 1 / 30
             else:
                 death_rate[i] = -29 / 30 / 19 * (-temp_i + 51) + 1
         elif temp_i < -4:
             death_rate[i] = 1
         else:
             death_rate[i] = -29 / 30 / 19 * (temp_i + 4) + 1
-    
+
     return death_rate
 
 
 def maturation(temperature, rainfall_avg):
-    
+
     n_temp = temperature.shape[0]
 
     R_L = 76
     R = rainfall_avg
 
     # Initialize
-    maturation_rate = np.rate((n_temp,))
+    maturation_rate = np.zeros((n_temp,))
 
     for i in range(n_temp):
 
@@ -98,5 +98,5 @@ def maturation(temperature, rainfall_avg):
             p_P = 3 * R * (R_L - R) / (R_L ** 2)
             tau_EA = 1 / (-0.00094 * (temp_i ** 2) + 0.049 * temp_i - 0.552)
             maturation_rate[i] = e * p_E * p_L * p_P / tau_EA
-    
+
     return maturation_rate
