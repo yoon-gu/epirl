@@ -10,4 +10,5 @@
 
 ```bash
 $ mesa runserver mesa_examples/SIR
+$ mesa runserver mesa_examples/cpe
 ```
