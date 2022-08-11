@@ -1,9 +1,9 @@
 import mesa
 
 class CreModel(mesa.Model):
-    def __init__(self, N=100, width=10, height=10):
+    def __init__(self, N=10, width=10, height=10):
         self.num_agents = N
-        self.grid = mesa.space.MultiGrid(width, height, True)
+        self.grid = mesa.space.MultiGrid(width, height, False)
         self.schedule = mesa.time.RandomActivation(self)
         # Create agents
         for i in range(self.num_agents):

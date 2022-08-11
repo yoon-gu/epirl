@@ -1,6 +1,9 @@
 import mesa
 from model import CreModel
 
+width = 32
+height = 11
+
 def agent_portrayal(agent):
     portrayal = {"Shape": "circle", "Filled": "true", "r": 0.5}
 
@@ -11,22 +14,22 @@ def agent_portrayal(agent):
     return portrayal
 
 
-grid = mesa.visualization.CanvasGrid(agent_portrayal, 10, 10, 500, 500)
+grid = mesa.visualization.CanvasGrid(agent_portrayal, width, height, 600, 200)
 
 model_params = {
     "N": mesa.visualization.Slider(
         "Number of agents",
-        100,
+        5,
         2,
-        200,
+        20,
         1,
         description="Choose how many agents to include in the model",
     ),
-    "width": 10,
-    "height": 10,
+    "width": width,
+    "height": height,
 }
 
 server = mesa.visualization.ModularServer(
-    CreModel, [grid], "Money Model", model_params
+    CreModel, [grid], "CRE Model", model_params
 )
 server.port = 8521
