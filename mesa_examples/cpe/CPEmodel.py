@@ -1,5 +1,4 @@
 #%%
-"""CPEmodel.py goes with cpe_Vis, so visitPatient() has been deleted"""
 from mesa import Agent, Model
 from mesa.datacollection import DataCollector
 from mesa.time import BaseScheduler, RandomActivation, SimultaneousActivation
@@ -14,28 +13,14 @@ from agents import *
 
 #%%
 
-width = 32
-height = 11
-numPatients = 30
-numHCW = 2
-numGoo = 4
-def getTotPatients(model):
-    count = 0
-    l = [agent.isPatient for agent in model.schedule.agents]
-    for i in l:
-        if i: # i is patient
-            count += 1
-    return count
-
 def getNumSick(model):
     """for patients"""
     count = 0
-    l = [(agent.isPatient and agent.colonized) for agent in model.schedule.agents]
+    l = [(agent.isPatient and agent.colonized) for agent in model.schedule.agents] # 모든 agent
     for i in l:
-        if i: # i is patient
+        if i: # i is patient # true의 개수를 세는 함수.
             count += 1
     return count
-
 
 def getNumColonized(model):
     """for HCW"""
@@ -48,75 +33,69 @@ def getNumColonized(model):
 
 def getCumulNumSick(model):
     """cumulative sick patients"""
-    
     return model.cumul_sick_patients
 
 def getHCWInfec(model):
     """every time a HCW infects a patient"""
-
     return model.num_infecByHCW
 
 def getCumul(model):
     """cumulative patients"""
     return model.cumul_patients
 
-
 #%%
 ICUA = ['A14','A15','A1','A2','A3','A4','A5','A6','A7','A8','A9','A10','A11','A12','A13']
 ICUB = ['B14','B15','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','B11','B12','B13']
 
-"""if we want to shuffle"""
-#random.shuffle(ICUA)
-#random.shuffle(ICUB)
 import numpy as np
 path_A = np.array_split(ICUA, 5)
 path_B = np.array_split(ICUB, 5)
 paths = np.concatenate((path_A, path_B))
-#path_A1 = random.sample(ICUA, 7)
-#path_A2 = [x for x in ICUA if x not in path_A1]
-#path_B1 = random.sample(ICUB, 7)
-#path_B2 = [x for x in ICUB if x not in path_B1]
-#paths = [path_A1, path_A2, path_B1, path_B2]
 
 class CPE_Model(Model):
     """A model with some number of agents."""
-    def __init__(self,  num_HCWs, num_Patients, num_Goo, prob_patient_sick, prob_new_patient, prob_transmission, isolation_factor, cleaningDay, isolate_sick, icu_hcw_wash_rate, outside_hcw_wash_rate, height, width):
-        self.tick = 0
-        self.ticks_in_hour = 36 * 3 # 36 ticks to visit 3 patients, 3 cycles per hour
-        self.ticks_in_day = 24 * self.ticks_in_hour
-        self.num_HCWs = num_HCWs
-        self.num_Patients = num_Patients
-        self.num_Goo = num_Goo
-        self.schedule = BaseScheduler(self)
-        self.grid = MultiGrid(width, height, torus =False)
+    def __init__(self, prob_patient_sick, prob_new_patient, prob_transmission, isolation_factor, cleaningDay, isolate_sick, isolation_time , icu_hcw_wash_rate, outside_hcw_wash_rate, height, width):
+        
+        self.num_HCWs = 10
+        self.num_Patients = 30
+
+        # 기본 parameter
         self.prob_patient_sick = prob_patient_sick
         self.prob_new_patient = prob_new_patient # geometric rv
-        self.cleaningDay = cleaningDay 
-        self.isolate_sick = isolate_sick
         self.prob_transmission = prob_transmission
         self.isolation_factor = isolation_factor
+        
+        self.cleaningDay = cleaningDay 
+        self.isolate_sick = isolate_sick
+        self.isolation_time = isolation_time
+        self.icu_hcw_wash_rate = icu_hcw_wash_rate
+        self.outside_hcw_wash_rate = outside_hcw_wash_rate
+        
+        self.grid = MultiGrid(width, height, torus =False)
+        
+        # 시간 설정
+        self.tick = 0
+        self.ticks_in_hour = 36*3 # 36 ticks to visit 3 patients, 3 cycles per hour
+        self.ticks_in_day = 24 * self.ticks_in_hour
+
+        self.schedule = BaseScheduler(self)
+
+        # Data collect variables 설정
         self.discharged = []
         self.current_patients = [] # List of all patients
         self.empty_beds = set() # empty set
         self.shared_beds = [] # list of all non isolated beds
         self.isol_beds = [] # list of all isolated beds
-        self.isol_space = False # Is there space in the isolated rooms?
-        self.num_infecByHCW = 0
-        self.icu_hcw_wash_rate = icu_hcw_wash_rate
-        self.outside_hcw_wash_rate = outside_hcw_wash_rate
+
         self.summon = False
         self.summoner = 0
-        self.nurse_list = []
-        
-        #self.randomMotion = randomMotion # or False for circular motion
 
-        #cumulative patients
-        self.cumul_patients = num_Patients
-        
-        #cumulative sick patients
-        self.cumul_sick_patients = 0
+        self.cumul_patients = self.num_Patients # cumulative patients (*)
+        self.cumul_sick_patients = 0 # cumulative sick patients (*)
+        self.num_infecByHCW = 0 # HCW에 의한 감염환자 수 (*)
 
-        # Create Xray Drs
+        # Create Agents
+        # Xray Drs 3명
         strange = XrayDr(-self.num_HCWs - 7, self, colonized = False, hand_wash_rate = self.outside_hcw_wash_rate, x = width-1, y = 0, workHours=24, numCare = 30, shiftsPerDay = 2)
         self.schedule.add(strange)
         self.grid.place_agent(strange, (strange.x, strange.y))
@@ -128,11 +107,8 @@ class CPE_Model(Model):
         strange = XrayDr(-self.num_HCWs - 9, self, colonized = False, hand_wash_rate = self.outside_hcw_wash_rate, x = width-2, y = 1, workHours=24, numCare = 3, shiftsPerDay = 1)
         self.schedule.add(strange)
         self.grid.place_agent(strange, (strange.x, strange.y))
-        
-        
-        
-        # Drs
-        
+
+        # Drs 6명
         strange = Dr(-self.num_HCWs - 6, self, colonized = False, hand_wash_rate = self.icu_hcw_wash_rate, x = width-1, y = height-1, workHours=24, numCare = 30)
         self.schedule.add(strange)
         self.grid.place_agent(strange, (strange.x, strange.y))
@@ -140,6 +116,7 @@ class CPE_Model(Model):
         strange = Dr(-self.num_HCWs - 5, self, colonized = False, hand_wash_rate = self.icu_hcw_wash_rate, x = width-2, y = height-1, workHours=12, numCare = 30)
         self.schedule.add(strange)
         self.grid.place_agent(strange, (strange.x, strange.y))
+
         strange = Dr(-self.num_HCWs - 4, self, colonized = False, hand_wash_rate = self.icu_hcw_wash_rate, x = width-2, y = height-2, workHours=12, numCare = 30)
         self.schedule.add(strange)
         self.grid.place_agent(strange, (strange.x, strange.y))
@@ -151,16 +128,13 @@ class CPE_Model(Model):
         strange = Dr(-self.num_HCWs - 2, self, colonized = False, hand_wash_rate = self.icu_hcw_wash_rate, x = width-4, y = height-1, workHours=1, numCare = 30)
         self.schedule.add(strange)
         self.grid.place_agent(strange, (strange.x, strange.y))
+
         strange = Dr(-self.num_HCWs - 1, self, colonized = False, hand_wash_rate = self.icu_hcw_wash_rate, x = width-4, y = height-2, workHours=1, numCare = 30)
         self.schedule.add(strange)
         self.grid.place_agent(strange, (strange.x, strange.y))
 
         
-        
-        
-        
-        
-        # Create HCW agents
+        # Create HCW agents 간호사 Num_HCWs = 10명(30명/3교대)
         for j in range(-self.num_HCWs, 0):
             b = Nurse(j, self, colonized = False, hand_wash_rate = self.icu_hcw_wash_rate, x = -2*j-2, y = 0)#, path = ex_path)
             self.schedule.add(b)
@@ -171,12 +145,11 @@ class CPE_Model(Model):
                 b.hall = 6 #ICUA
             else:
                 b.hall = 5 #ICUB
-            self.nurse_list.append(b)
+
             
-        # bed
+        # bed,patient,Goo 30개
         for i in range(30):
-            
-            
+            # 위치 정하기
             if i in range(11):
                 xpos = 2 * i + 5
                 ypos = 1
@@ -206,6 +179,7 @@ class CPE_Model(Model):
                 isolated = True
             
             """We first create beds so that patient.checkIsolated() works"""
+            # Beds
             if isolated:
                 b = IsolatedBed(i, self, colonized = False, x = xpos, y = ypos) # 0~30
                 self.schedule.add(b)
@@ -228,7 +202,7 @@ class CPE_Model(Model):
                 a.stay = np.random.randint(1,9+1) * self.ticks_in_day
             
             
-            # Goo
+            #Goo
             if ypos > 5: # top row
                 d = Goo(-self.num_Patients - i, self, colonized = True, x=xpos, y=ypos-1) #-30~-60
             else: # bottom row
@@ -237,143 +211,74 @@ class CPE_Model(Model):
             self.grid.place_agent(d, (d.x, d.y))
 
 
-
-        """
-        The Great Wall
-        # for j in range(2,20):
-        #     if j not in range(10,13):
-        #         b = Wall(-100-j, self, colonized = False, x = j, y = 5)
-        #         #self.schedule.add(b)
-        #         self.grid.place_agent(b, (b.x, b.y))
-
-        # for j in range(-num_Goo-num_HCWs, -num_HCWs):
-        #     tempx = self.random.randrange(self.grid.width)
-        #     tempy = self.random.randrange(self.grid.height)
-        #     same_as_bed = False
-        #     for k in range(self.num_Patients):
-        #         if (2*(k%6)+1,(k//6)*3+1) == (tempx, tempy):
-        #             same_as_bed = True
-        #     while same_as_bed == True:
-        #         tempx = self.random.randrange(self.grid.width)
-        #         tempy = self.random.randrange(self.grid.height)
-        #         same_as_bed = False
-        #         for k in range(self.num_Patients):
-        #             if (2*(k%6)+1,(k//6)*3+1) == (tempx, tempy):
-        #                 same_as_bed = True
-        """
-
-
-
         self.datacollector = DataCollector(
             model_reporters={"Number of Patients sick": getNumSick,
                     "Number of HCW colonized": getNumColonized,
                     "Cumulative number of colonized patients": getCumulNumSick,
                     "HCW related infections": getHCWInfec,
-                    "Cumulative Patients": getCumul,
-                    #"Total number of Patients": getTotPatients
+                    "Cumulative Patients": getCumul
                     })
             
         self.running = True
-        self.datacollector.collect(self)
-
-    def get_nurse_list(self):
-        l = []
-        for m in model.schedule.agents:
-            if isinstance(m, Nurse):
-                l.append(m)
-        return l
-
-    def get_patient_list(self):
-        l = []
-        for m in model.schedule.agents:
-            if m.isPatient:
-                l.append(m)
-        return l
-
+        # self.datacollector.collect(self)
+        
     def step(self):
-        #print('Cumulative Patients: {}'.format(self.cumul_patients))
-
+        # 시간이 1tick 씩 흐른다.
         self.tick += 1
         self.tick %= self.ticks_in_day # to keep the number from getting too large
+
+        # sommon Nurse
         if self.tick % self.ticks_in_hour == 0:
             self.summoner = self.tick // self.ticks_in_hour
             if self.summoner > 0 and self.summoner < 16: # only for patients 1~15
                 self.summon = True
-
-        self.schedule.step()
+   
         self.datacollector.collect(self)
+        self.schedule.step()
+
+        # remove patient
         for ex_patient in self.discharged:
-            # get location of the patient to be discharged
-            tempx = ex_patient.x
-            tempy = ex_patient.y
-            
-            # remove patient
             #self.remove_patient(ex_patient)
             self.grid.remove_agent(ex_patient)
             self.schedule.remove(ex_patient)
             self.discharged.remove(ex_patient)
+        
+        # Move patients to Isolated beds
+        if self.isolate_sick: # T/F 로 바꿔가면서 실험
 
-            # add a new patient in place of old patient
-            #def __init__(self, unique_id, model, colonized, x, y):
-        
-        #Instead of prob for each bed, make it into prob for entire ward
-        """if not not self.empty_beds: #if empty_beds is not empty
-            incoming = np.random.choice([1,0], p = [self.prob_new_patient, 1-self.prob_new_patient])
-            if (incoming == 1):
-                bed = self.empty_beds.pop() # 
-                tempx, tempy = bed # unpack the tuple
-                new_patient = Patient(self.num_Patients + self.cumul_patients, self, colonized = False, x = tempx, y = tempy)
-                self.schedule.add(new_patient)
-                self.grid.place_agent(new_patient, (tempx, tempy))
-                self.cumul_patients += 1
-                if new_patient.colonized == True:
-                    self.cumul_sick_patients += 1
-        """
-        
-        """Move patients to Isolated beds"""
-        if self.isolate_sick:
             for bed in self.shared_beds: # 7-person room
                 if bed.filledSick:
                     cellmates = self.grid.get_cell_list_contents([bed.pos])
                     for cellmate in cellmates: # in case HCW is also in the same cell
-                        
-                        if not cellmate.isPatient:
+                        if not cellmate.isPatient: 
                             continue # hcw or THE BED ITSELF
-                        
-                        sickguy = cellmate
-                        for ibed in self.isol_beds:
-                            if ibed.filledSick:
-                                continue
-                            if ibed.filled:
-                                icellmates = self.grid.get_cell_list_contents([ibed.pos])
-                                for icellmate in icellmates:
-                                    if icellmate.isPatient:
-                                        healthyguy = icellmate
+                        else: # cellmate = patient
+                            if cellmate.move2isol: # 옮겨야 될 시간이 된 공유침대 감염환자 발견
+                                sickguy = cellmate
+                                for ibed in self.isol_beds:
+                                    if ibed.filledSick:
+                                        continue
+                                    if ibed.filled and not ibed.filledSick: # 격리침대 환자가 아프지 않은지 확인
+                                        icellmates = self.grid.get_cell_list_contents([ibed.pos])
+                                        
+                                        for icellmate in icellmates:
+                                            if icellmate.isPatient: # 아프지 않은 환자일거임
+                                                healthyguy = icellmate
+                                                self.grid.move_agent(sickguy, (ibed.x, ibed.y))
+                                                self.grid.move_agent(healthyguy, (bed.x, bed.y))
+                                                ibed.checkFilled() # to label the bed filled
+                                                break # we don't need to consider other icellmates
+                                        
+                                        break # we don't need to consider other beds
+                                    else: # not filled
                                         self.grid.move_agent(sickguy, (ibed.x, ibed.y))
-                                        self.grid.move_agent(healthyguy, (bed.x, bed.y))
                                         ibed.checkFilled() # to label the bed filled
-                                        break # we don't need to consider other icellmates
-                                break # we don't need to consider other beds
-                            else: # not filled
-                                self.grid.move_agent(sickguy, (ibed.x, ibed.y))
-                                ibed.checkFilled() # to label the bed filled
-                                break
-                        
+                                    break                        
                 else:
-                    continue
+                    continue # 감염환자가 격리실로 옮겨지고 나서 bed.pos은 checkFilled() 안해줘도 되나요? 
+                                # 매번 step에서 침대의 checkFilled()함수가 돌아가고 있습니다.
+                                # 매번 step에서 환자의 isolatedcheck함수가 돌아가고 있습니다. (그냥 여기다 해주면 굳이 매번할 필요 없지않나.)
 
-
-
-
-    def run_model(self, n):
-        for i in range(n):
-            self.step()
-
-    #print('\n')
-
-
-# %%
-cleaningDay = 40 # every 40 days
-model = CPE_Model(num_HCWs=numHCW, num_Patients=numPatients, num_Goo = numGoo, prob_patient_sick = 0.5, prob_new_patient = 0.5, cleaningDay = cleaningDay, prob_transmission = .9, isolation_factor = .5, isolate_sick = True, icu_hcw_wash_rate=.9, outside_hcw_wash_rate=.9, height=height, width=width)
-
-# %%
+    # def run_model(self, n):
+    #     for i in range(n):
+    #         self.step()

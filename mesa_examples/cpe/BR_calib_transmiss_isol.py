@@ -11,7 +11,7 @@ import pandas as pd
 import time
 import seaborn as sns
 # %% STEP1,STEP2
-num_iter = 50
+num_iter = 1
 runtime = 200 #(Days)
 
 start_time = time.time()
@@ -44,12 +44,12 @@ fixed_params = {
     }
 
 # Specify the variable I want to change separately.
-beta = [0.000001, 0.000002, 0.000003, 0.000004, 0.000005, 0.000006, 0.000007, 0.000008, 0.000009]
+beta = [0.000001, 0.000002]
 variable_params = {"prob_transmission" : beta}
 # %% STEP4
 model = CPE_Model(
     prob_patient_sick=probPatientSick,prob_new_patient=probNewPatient, prob_transmission=probTransmission, 
-    isolation_factor=isolationFactor,cleaningDay=cleanDay, isolate_sick=True, 
+    isolation_factor=isolationFactor,cleaningDay=cleanDay, isolate_sick=True, isolation_time=isolationTime,
     icu_hcw_wash_rate=ICUwashrate, outside_hcw_wash_rate=OUTSIDEwashrate,
     height=height, width=width
     )
@@ -74,12 +74,6 @@ print("done!!")
 run_data = batch_run.get_model_vars_dataframe()
 
 #%%
-year = 2022
-month = 8
-day = 9
-csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..',
-    'result/batchrun/[{}.{}.{}]CalibrateBeta4.csv'.format(year,month,day))
-run_data.to_csv(csv_path)
 print("--- %s seconds ---" % (time.time() - start_time))
 #%%
 data_mean = run_data.groupby(["prob_transmission"])['Number_of_Patients_sick'].mean()
