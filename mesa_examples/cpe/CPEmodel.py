@@ -4,7 +4,6 @@ from mesa import Agent, Model
 from mesa.datacollection import DataCollector
 from mesa.time import BaseScheduler, RandomActivation, SimultaneousActivation
 import numpy as np
-import matplotlib.pyplot as plt
 import random
 from mesa.space import MultiGrid
 from numpy.lib.shape_base import expand_dims #add a location variable
