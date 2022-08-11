@@ -16,7 +16,7 @@ def test_cpe_model():
     width=32
 
     model = CPE_Model(
-        prob_patient_sick=probPatientSick,prob_new_patient=probNewPatient,
+        prob_patient_sick=probPatientSick, prob_new_patient=probNewPatient,
         prob_transmission=probTransmission,
         isolation_factor=isolationFactor,
         cleaningDay=cleanDay, isolate_sick=True,
