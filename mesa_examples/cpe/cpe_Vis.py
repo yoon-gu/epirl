@@ -1,8 +1,20 @@
-from mesa.visualization.modules import CanvasGrid, ChartModule
+
+#%%
+
 from mesa.visualization.ModularVisualization import ModularServer
+
+
+from mesa.visualization.modules import CanvasGrid
+from mesa.visualization.modules import ChartModule
 from mesa.visualization.UserParam import UserSettableParameter
 from CPEmodel import CPE_Model
 from agents import *
+
+# def agent_portrayal(agent):
+#     portrayal = {"Shape": "circle", "Filled": "true", "r": 0.5, "Layer":0, "Color": "red"}
+#     return portrayal
+
+
 
 def agent_portrayal(agent):
     portrayal = {"Shape":"circle",
@@ -57,13 +69,13 @@ def agent_portrayal(agent):
             else:
                 portrayal["Color"] = "black"
 
-    if agent.isWall == True:
-        portrayal["Shape"] = "rect"
-        portrayal["Layer"] = 10
-        portrayal["w"] = .99 #width
-        portrayal["h"] = .99 #height of rectangle
-        portrayal["Color"] = "#000000"
-        #"#273746"
+    # if agent.isWall == True:
+    #     portrayal["Shape"] = "rect"
+    #     portrayal["Layer"] = 10
+    #     portrayal["w"] = .99 #width
+    #     portrayal["h"] = .99 #height of rectangle
+    #     portrayal["Color"] = "#000000"
+    #     #"#273746"
 
     if agent.isBed == True:
         portrayal["Shape"] = "rect"
@@ -74,7 +86,15 @@ def agent_portrayal(agent):
             portrayal["Color"] = "#43165B"
         else:
             portrayal["Color"] = "#727272" #grey
+        #"#273746"
 
+    # if agent.isIsolatedBed == True:
+    #     portrayal["Shape"] = "rect"
+    #     portrayal["Layer"] = 1
+    #     portrayal["w"] = .55 #width
+    #     portrayal["h"] = .9 #height of rectangle
+    #     portrayal["Color"] = "#43165B"
+    #     #"#273746"
     
     if agent.isGoo == True:
         portrayal["Shape"] = "rect"
@@ -87,31 +107,43 @@ def agent_portrayal(agent):
         else:
             portrayal["Color"] = "#00FF00"
 
-
+    # if agent.isEnvironment == True:
+    #     portrayal = {"Shape":"rect",
+    #                 "Filled": "false",
+    #                 "Layer" : 0,
+    #                 "w" : 1,
+    #                 "h" : 1}
+        
+    #     if agent.isBed == True:
+    #         portrayal["Color"] = "#999966"
+    #     if agent.isWater == True:
+    #         portrayal["Color"] = "#33cccc"
     """FIX"""
     return portrayal
 
-grid = CanvasGrid(agent_portrayal, 32, 11, 900, 300) #sets the size of grid on screen (does not mean agents will use all)
 
+grid = CanvasGrid(agent_portrayal, 32, 11, 900, 300) #sets the size of grid on screen (does not mean agents will use all)
 chart = ChartModule(
     [{"Label": "Number of Patients sick", "Color": "#800000"}, 
     {"Label": "Number of HCW colonized", "Color": "#00FFFF"},
-    {"Label": "Total number of Patients", "Color": "#D2691E"},
+    # {"Label": "Total number of Patients", "Color": "#D2691E"},
+    # {"Label": "Cumulative Patients", "Color": "#black"},
     {"Label": "HCW related infections", "Color": "black"}
     ],
     data_collector_name="datacollector"
 )
 
+
 model_params = {
-    "num_HCWs": UserSettableParameter(
-        "slider", #param type
-        "Nurses", #name
-        10, #default value
-        1, # min value
-        10, #max value
-        1, # step
-        description="How many HCWs?",
-    ),
+    # "num_HCWs": UserSettableParameter(
+    #     "slider", #param type
+    #     "Nurses", #name
+    #     10, #default value
+    #     1, # min value
+    #     10, #max value
+    #     1, # step
+    #     description="How many HCWs?",
+    # ),
     
     "icu_hcw_wash_rate": UserSettableParameter(
         "slider", #param type
@@ -133,9 +165,9 @@ model_params = {
         #description="How many HCWs?",
     ),
     
-    "num_Patients": 30,
+    # "num_Patients": 30,
 
-    "num_Goo": 30,
+    # "num_Goo": 30,
 
     "prob_patient_sick": UserSettableParameter(
         "slider", #param type
@@ -193,12 +225,30 @@ model_params = {
         value = True, #default value
         description="",
     ),
+      "isolation_time": UserSettableParameter(
+        "slider", #param type
+        "Isolated Period for sick patients", #name
+        14, #default value
+        1, #min value
+        14, #max
+        1, # step
+        description="Up to how long after you get infected, you'll be taken to the isolation room",
+    ),
     
+    # "randomMotion": UserSettableParameter(
+    #     "checkbox", #param type
+    #     "Random Motion", #name
+    #     value = False, #default value
+    #     #description="",
+    # ),
 
     "width": 32, # sets which squares agents occupy
     "height": 11,
 }
 
 server = ModularServer(CPE_Model, [grid, chart], "CPE Model", model_params)
+server.port = 8522
+server.launch()
+# %%
 
-server.port = 8521
+# %%
