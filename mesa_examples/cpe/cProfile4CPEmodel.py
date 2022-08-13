@@ -1,4 +1,3 @@
-#%%
 import cProfile
 from CPEmodel import CPE_Model
 
@@ -24,6 +23,11 @@ model = CPE_Model(
     outside_hcw_wash_rate=OUTSIDEwashrate,
     height=height, width=width
     )
-# %%
+
 print(cProfile.run("model.step()","profiling/cpe_cProfiling.prof"))
 # Enter the " snakeviz profiling/cpe_cProfiling.prof " in cmd window.
+
+# (1) checkFilled 를 매번 할 필요 없음
+# (2) get_cell_list_contents 보다 효율적인 방법
+# (3) IsolatedBed 의 step() 은 checkFilled를 두 번 포함 (1)을 해결하면 될 것 같다.
+# (4) Nurse 의 step()은 summon 보다 move and spread <-해결방법 고민.
