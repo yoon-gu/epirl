@@ -72,12 +72,13 @@ class CPE_Model(Model):
         
         self.grid = MultiGrid(width, height, torus =False)
         
-        # 시간 설정
-        self.tick = 0
+        # 시간 설정 self.tick = self.schedule.time
+        # self.tick = 0
         self.ticks_in_hour = 36*3 # 36 ticks to visit 3 patients, 3 cycles per hour
         self.ticks_in_day = 24 * self.ticks_in_hour
 
         self.schedule = BaseScheduler(self)
+        
 
         # Data collect variables 설정
         self.discharged = []
@@ -222,18 +223,19 @@ class CPE_Model(Model):
         # self.datacollector.collect(self)
         
     def step(self):
-        # 시간이 1tick 씩 흐른다.
-        self.tick += 1
-        self.tick %= self.ticks_in_day # to keep the number from getting too large
+
+        self.datacollector.collect(self)
+        self.schedule.step()
+        # self.tick += 1
+        self.schedule.time %= self.ticks_in_day # to keep the number from getting too large
 
         # sommon Nurse
-        if self.tick % self.ticks_in_hour == 0:
-            self.summoner = self.tick // self.ticks_in_hour
+        if self.schedule.time % self.ticks_in_hour == 0:
+            self.summoner = self.schedule.time // self.ticks_in_hour
             if self.summoner > 0 and self.summoner < 16: # only for patients 1~15
                 self.summon = True
    
-        self.datacollector.collect(self)
-        self.schedule.step()
+
 
         # remove patient
         for ex_patient in self.discharged:
@@ -281,3 +283,5 @@ class CPE_Model(Model):
     # def run_model(self, n):
     #     for i in range(n):
     #         self.step()
+
+# %%

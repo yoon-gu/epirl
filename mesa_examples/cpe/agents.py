@@ -115,7 +115,7 @@ class HCW(CPE_Agent):
             self.move() # recursion, so that it will continue on asap.
 
     def answerSummon(self, destination):
-        if self.model.tick % self.model.ticks_in_hour == 0: # at the beginning of summon
+        if self.model.schedule.time % self.model.ticks_in_hour == 0: # at the beginning of summon
             self.reachedHall = False
         x, y = self.pos
         if (x,y) != destination: # did not find the room yet
@@ -202,7 +202,7 @@ class Nurse(HCW):
         self.workHours = 8
 
     def step(self):
-
+        # print("Hi, I am Nurse " + str(self.unique_id) + ".")
         if self.model.summon:
             if self.model.summoner > 0 and self.model.summoner < 16: # 반복되는거같아
                 if self.model.summoner < 8 or self.model.summoner > 13: # on the east wing of the ICU
@@ -249,7 +249,7 @@ class Nurse(HCW):
             self.spread()
             
         # Change nurses. Handwash.
-        if self.model.tick == self.model.ticks_in_hour * self.workHours:
+        if self.model.schedule.time == self.model.ticks_in_hour * self.workHours:
             self.colonized = False
             
 class Dr(HCW):
@@ -290,9 +290,10 @@ class Dr(HCW):
             pass # get some rest
     
     def step(self):
-        if self.model.tick > self.startTime and self.model.tick < self.endTime:
+        # print("Hi, I am Doctor " + str(self.unique_id) + ".")
+        if self.model.schedule.time > self.startTime and self.model.schedule.time < self.endTime:
             self.activated = True
-        elif self.model.tick == self.endTime:
+        elif self.model.schedule.time == self.endTime:
             self.activated = False
             # self.colonized = False (leaveICU에서 하고 있음)
             
@@ -314,7 +315,8 @@ class XrayDr(Dr):
     
     
     def step(self):
-        if self.model.tick % (self.model.ticks_in_day / self.shiftsPerDay)== 0:
+        # print("Hi, I am Xray Dortor " + str(self.unique_id) + ".")
+        if self.model.schedule.time % (self.model.ticks_in_day / self.shiftsPerDay)== 0:
             self.activated = True
 
         if self.pos == room2coord(self.last_patient): # 얘는 왜 일 다 끝났는데 colonizes False 없지? Dr의 성질을 그대로 물려받아서?
@@ -363,6 +365,7 @@ class Patient(CPE_Agent):
             self.isolated = False
 
     def step(self):
+        # print("Hi, I am Patients " + str(self.unique_id) + ".")
         #remove oneself if the stay is too long
         self.stay -= 1
         self.isol_time -= 1
