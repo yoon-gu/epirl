@@ -40,7 +40,7 @@ if __name__ == '__main__':
     results = mesa.batch_run(
         CPE_Model,
         parameters=params,
-        iterations=10,
+        iterations=num_iter,
         max_steps=MaxSteps,
         number_processes=8,
         data_collection_period=1,
