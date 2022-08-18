@@ -1,4 +1,3 @@
-import pytest
 from CPEmodel import CPE_Model
 
 def test_cpe_model():
