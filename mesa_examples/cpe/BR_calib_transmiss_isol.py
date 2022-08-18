@@ -49,10 +49,5 @@ if __name__ == '__main__':
 
     run_data = pd.DataFrame(results)
 
-    data_mean = run_data.groupby(["prob_transmission"])['Number_of_Patients_sick'].mean()
+    data_mean = run_data.groupby(["prob_transmission"])['Number of Patients sick'].mean()
     print(data_mean)
-    print('\n\n')
-    data_mean = data_mean.reset_index()
-    print(data_mean['Number_of_Patients_sick'])
-    mean_patients_sick = data_mean['Number_of_Patients_sick'] #The avg number for the iterations
-    print(mean_patients_sick)
