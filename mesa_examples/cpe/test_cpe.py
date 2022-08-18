@@ -23,9 +23,3 @@ model = CPE_Model(
     outside_hcw_wash_rate=OUTSIDEwashrate,
     height=height, width=width
     )
-
-for _ in range(2592+10):
-    model.step()
-    # print("model.tick = ",model.tick)
-print("model.schedule.time = ",model.schedule.time)
-
