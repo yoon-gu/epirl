@@ -9,15 +9,15 @@ ICUB = ['B14','B15','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','B11','B1
 
 
 def room2coord(room): # Outputs
-        
+
         if len(room) == 2:
             pos = int(room[1]) # number after the letter
         else: # two digit number
             pos = int(room[1])*10 + int(room[2])
-        
+
         letter = room[0] # letter
         if letter == 'A':
-            if pos < 12: 
+            if pos < 12:
                 y = 10
                 x = 2 * abs(11-pos) + 5
             elif pos < 14:
@@ -27,7 +27,7 @@ def room2coord(room): # Outputs
                 y = 8
                 x = 2 * abs(pos-14) + 27
         else: # 'B'
-            if pos < 12: 
+            if pos < 12:
                 y = 1
                 x = 2 * abs(11-pos) + 5
             elif pos < 14:
@@ -58,17 +58,17 @@ class HCW(CPE_Agent):
     def __init__(self, unique_id, model, colonized, hand_wash_rate, x, y): #path):
         super().__init__(unique_id, model, colonized, x, y)
         self.hand_wash_rate = hand_wash_rate
-        
+
         self.test_rate = 1
         self.true_positive_rate = 1
-        
+
         self.isHCW = True
         self.moveTick = 0
         self.path = []
         self.reached = False
         self.reachedHall = False
         self.hall = 5
-        
+
     def move(self):
         if self.reached: # reached patient or goo
             self.handwash()
@@ -77,7 +77,7 @@ class HCW(CPE_Agent):
         #print("Self pos: ", self.pos)
         k = len(self.path)
         ## DESTINATION SETTING. We must set the destination
-        
+
 
         destination = room2coord(self.path[self.moveTick])
 
@@ -94,13 +94,13 @@ class HCW(CPE_Agent):
             else:
                 if x < destination[0]:
                     new_position = (x+1, y)
-                    self.model.grid.move_agent(self, new_position)  
+                    self.model.grid.move_agent(self, new_position)
                 elif x > destination[0]:
                     new_position = (x-1, y)
-                    self.model.grid.move_agent(self, new_position)  
+                    self.model.grid.move_agent(self, new_position)
                 elif y > destination[1]:
                     new_position = (x, y-1)
-                    self.model.grid.move_agent(self, new_position)  
+                    self.model.grid.move_agent(self, new_position)
                 elif y < destination[1]:
                     new_position = (x, y+1)
                     self.model.grid.move_agent(self, new_position)
@@ -127,20 +127,20 @@ class HCW(CPE_Agent):
             else:
                 if x < destination[0]:
                     new_position = (x+1, y)
-                    self.model.grid.move_agent(self, new_position)  
+                    self.model.grid.move_agent(self, new_position)
                 elif x > destination[0]:
                     new_position = (x-1, y)
-                    self.model.grid.move_agent(self, new_position)  
+                    self.model.grid.move_agent(self, new_position)
                 elif y > destination[1]:
                     new_position = (x, y-1)
-                    self.model.grid.move_agent(self, new_position)  
+                    self.model.grid.move_agent(self, new_position)
                 elif y < destination[1]:
                     new_position = (x, y+1)
                     self.model.grid.move_agent(self, new_position)
         else:
             self.reachedHall = False
             pass # do not move until others join
-     
+
     def testCRE(self, other):
         test = np.random.choice([1,0], p = [self.test_rate, 1-self.test_rate])
         if test:
@@ -172,10 +172,10 @@ class HCW(CPE_Agent):
                                 if not other.isolated: # in the shared beds
                                     other.isoltime = np.random.randint(1,self.model.isolation_time)*self.model.ticks_in_day # unif dist, bcz we dont know dist.
                                 self.model.cumul_sick_patients += 1
-                                self.model.num_infecByHCW += 1    
+                                self.model.num_infecByHCW += 1
                             else: # (other.isGoo):
                                 other.colonized = True
-                    
+
                     else: #get infected
                         if other.colonized:
                             if other.isolated:
@@ -185,17 +185,17 @@ class HCW(CPE_Agent):
                             """check if sick"""
                             if other.isPatient:
                                 self.testCRE(other)
-                
+
                 if other.isPatient or other.isGoo:
                     self.reached = True
                 #else:
                 #   self.reached = False
 
     def handwash(self):
-        wash = np.random.choice([1,0], p = [self.hand_wash_rate, 1-self.hand_wash_rate]) # fixed proability based on data       
+        wash = np.random.choice([1,0], p = [self.hand_wash_rate, 1-self.hand_wash_rate]) # fixed proability based on data
         if wash:
             self.colonized = False
-            
+
 class Nurse(HCW):
     def __init__(self, unique_id, model, colonized, hand_wash_rate, x, y): #path):
         super().__init__(unique_id, model, colonized, hand_wash_rate, x, y)
@@ -208,11 +208,11 @@ class Nurse(HCW):
                 if self.model.summoner < 8 or self.model.summoner > 13: # on the east wing of the ICU
                     nurses_A = {-1,-2,-3} # ID of the nurses in east wing
                     nurses_B = {-6,-7,-8}
-                
+
                 else:
                     nurses_A = {-3,-4,-5} # ID of the nurses in west wing
                     nurses_B = {-10,-9,-8}
-                
+
                 destination = str(self.model.summoner) # bed in need of position change
                 summoner_loc_A = self.model.grid.get_cell_list_contents([room2coord('A' + destination)]) # location of bed in need of position change
                 summoner_loc_B = self.model.grid.get_cell_list_contents([room2coord('B' + destination)]) # location of bed in need of position change
@@ -236,22 +236,22 @@ class Nurse(HCW):
                 else:
                     self.move()
                     self.spread()
-                
+
                 if nurses_A.issubset(ppl_at_loc_A) and nurses_B.issubset(ppl_at_loc_B): # all 3 nurses have joined
                     for x in summoner_loc_A + summoner_loc_B:
                         if isinstance(x, Nurse):
                             x.reachedHall = False
                     self.model.summon = False
-            
+
         # regular activity
         else:
             self.move()
             self.spread()
-            
+
         # Change nurses. Handwash.
         if self.model.schedule.time == self.model.ticks_in_hour * self.workHours:
             self.colonized = False
-            
+
 class Dr(HCW):
     def __init__(self, unique_id, model, colonized, hand_wash_rate, x, y, workHours, numCare): #path):
         super().__init__(unique_id, model, colonized, hand_wash_rate, x, y)
@@ -275,20 +275,20 @@ class Dr(HCW):
             else: # reachedHall
                 if x < destination[0]:
                     new_position = (x+1, y)
-                    self.model.grid.move_agent(self, new_position)  
+                    self.model.grid.move_agent(self, new_position)
                 elif x > destination[0]:
                     new_position = (x-1, y)
-                    self.model.grid.move_agent(self, new_position)  
+                    self.model.grid.move_agent(self, new_position)
                 elif y > destination[1]:
                     new_position = (x, y-1)
-                    self.model.grid.move_agent(self, new_position)  
+                    self.model.grid.move_agent(self, new_position)
                 elif y < destination[1]:
                     new_position = (x, y+1)
                     self.model.grid.move_agent(self, new_position)
-            
+
         else: # found
             pass # get some rest
-    
+
     def step(self):
         # print("Hi, I am Doctor " + str(self.unique_id) + ".")
         if self.model.schedule.time > self.startTime and self.model.schedule.time < self.endTime:
@@ -296,7 +296,7 @@ class Dr(HCW):
         elif self.model.schedule.time == self.endTime:
             self.activated = False
             # self.colonized = False (leaveICU에서 하고 있음)
-            
+
         if self.activated:
             self.move()
             self.spread()
@@ -306,14 +306,14 @@ class Dr(HCW):
 class XrayDr(Dr):
     def __init__(self, unique_id, model, colonized, hand_wash_rate, x, y, workHours, numCare, shiftsPerDay):
         super().__init__(unique_id, model, colonized, hand_wash_rate, x, y, workHours, numCare)
-        self.shiftsPerDay = shiftsPerDay    
+        self.shiftsPerDay = shiftsPerDay
         self.original_pos = (x,y)
         self.activated = False
         self.path = random.sample(ICUA+ICUB, numCare)
         self.k = len(self.path)
         self.last_patient = self.path[numCare-1]
-    
-    
+
+
     def step(self):
         # print("Hi, I am Xray Dortor " + str(self.unique_id) + ".")
         if self.model.schedule.time % (self.model.ticks_in_day / self.shiftsPerDay)== 0:
@@ -323,13 +323,13 @@ class XrayDr(Dr):
             self.activated = False
             self.reachedHall = False
             self.moveTick = 0
-        
+
         if self.activated:
             self.move()
             self.spread()
         else:
-            self.leaveICU() 
-        
+            self.leaveICU()
+
 class Patient(CPE_Agent):
     """ An agent with colonized status.
     Cannot move and leaves hospital after a certain time"""
@@ -339,25 +339,25 @@ class Patient(CPE_Agent):
         self.isol_time = -1
         self.move2isol = False
         #self.infecByHCW = False # in the beginning, nobody is infected by HCW
-        
+
         self.checkIsolated()
         self.model.current_patients.append(self)
         sick = np.random.choice([1,2], p=[self.model.prob_patient_sick,1-self.model.prob_patient_sick])
         if sick == 1:
             self.colonized = True
 
-        
+
         if self.colonized: #mean 11, 1q 3.5,  median 6, 3q 16.75
             self.stay = np.random.choice(length_stay) * self.model.ticks_in_day
-        
+
         else: #mean 7 median 2, 1q 0, 3q 9
             # right skewed, so use geometric random var
             self.stay = np.random.geometric(.2) * self.model.ticks_in_day
-        
+
         #self.new = True # SCV ready to go sir
 
         self.positive = False
-        
+
     def checkIsolated(self):
         if self.x <= 7 or self.x >= 23:
             self.isolated = True
@@ -372,12 +372,12 @@ class Patient(CPE_Agent):
         if self.stay == 0:
             self.model.current_patients.remove(self)
             self.model.discharged.append(self)
-        
+
         if self.isol_time == 0:
             self.move2isol = True
-        
 
-            
+
+
 
         #if self.new == True:
         #    print("New Patient {}: {}, {} days left".format(self.unique_id, self.state, self.stay))
@@ -386,13 +386,13 @@ class Patient(CPE_Agent):
         #self.new = False
 
         self.checkIsolated() #alters state if moved to/from isolated bed
-    
+
 class Environment(CPE_Agent):
     """ An agent with colonized status.
     Cannot move and does not leave."""
     def __init__(self, unique_id, model, colonized, x, y):
         super().__init__(unique_id, model, colonized, x, y)
-        self.isEnvironment = True    
+        self.isEnvironment = True
         self.filled = False # all patients fill the beds
         self.filledSick = False
         self.isGoo = False
@@ -407,7 +407,7 @@ class Bed(Environment):
         super().__init__(unique_id, model, colonized, x, y)
         self.isBed = True
         self.isIsolatedBed = False
-    
+
     def step(self):
         self.checkFilled()
         if not self.filled:
@@ -419,13 +419,13 @@ class Bed(Environment):
                 self.model.cumul_patients += 1
                 if new_patient.colonized:
                     self.model.cumul_sick_patients += 1
-            
+
             self.checkFilled()
             # self.model.empty_beds.add((self.x, self.y))
         # else:
-        #     if (self.x, self.y) in self.model.empty_beds: # without checking element in set, there could be error. 
-        #         self.model.empty_beds.remove((self.x, self.y)) 
-        
+        #     if (self.x, self.y) in self.model.empty_beds: # without checking element in set, there could be error.
+        #         self.model.empty_beds.remove((self.x, self.y))
+
         # if self.filled == False:
         #     self.colonized = False
 
@@ -449,7 +449,7 @@ class IsolatedBed(Bed):
     def __init__(self, unique_id, model, colonized, x, y):
         super().__init__(unique_id, model, colonized, x, y)
         self.isIsolatedBed = True
-        
+
     def step(self):
         self.checkFilled()
         if not self.filled:
@@ -463,11 +463,11 @@ class IsolatedBed(Bed):
                     self.model.cumul_sick_patients += 1
             self.model.empty_beds.add((self.x, self.y))
         else: # not empty anymore!
-            if (self.x, self.y) in self.model.empty_beds: # without checking element in set, there could be error. 
-                self.model.empty_beds.remove((self.x, self.y)) 
+            if (self.x, self.y) in self.model.empty_beds: # without checking element in set, there could be error.
+                self.model.empty_beds.remove((self.x, self.y))
         self.checkFilled()
         #print("Bed {}. Filled: {}, FilledSick: {}".format(self.unique_id, self.filled, self.filledSick))
-        
+
         #if self.filled == False:
         #    self.colonized = False
 
@@ -478,20 +478,20 @@ class Goo(Environment):
         super().__init__(unique_id, model, colonized, x, y)
         self.isGoo = True
         self.clean_tick = self.model.cleaningDay * self.model.ticks_in_day
-        
+
         if self.x <= 7 or self.x >= 23:
             self.isolated = True
         else:
             self.isolated = False
     def handwash(self): # 100%
-        #wash = np.random.choice([1,0], p = [.9, .1]) # fixed proability based on data       
+        #wash = np.random.choice([1,0], p = [.9, .1]) # fixed proability based on data
         #if wash:
         self.colonized = False
-        
+
     def step(self):
         #self.checkFilled()
         self.clean_tick -= 1
-        
+
         if (self.clean_tick <= 0):
             self.handwash()
             self.clean_tick = self.model.cleaningDay * self.model.ticks_in_day
