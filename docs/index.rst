@@ -8,8 +8,12 @@ Welcome to Optimal Control of Mathematical Biology Models's documentation!
 
 .. toctree::
    :maxdepth: 2
+   :numbered:
    :caption: Contents:
 
+   adjoint_method
+   reinforcement_learning
+   autoencoder
 
 
 Indices and tables
