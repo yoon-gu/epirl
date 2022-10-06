@@ -42,8 +42,8 @@ Adjoint method
 
 .. math::
    \begin{cases}
-   \lambda_S' &= u + \beta I (\lambda_I - \lambda_S) - u \lambda_S\\
-   \lambda_I' &= 1 + \beta S(\lambda_I - \lambda_S) - \gamma \lambda_I
+   \lambda_S' &= -u - \beta I (\lambda_I - \lambda_S) + u \lambda_S\\
+   \lambda_I' &= -1 - \beta S(\lambda_I - \lambda_S) + \gamma \lambda_I
    \end{cases}
 
 .. code-block:: python
