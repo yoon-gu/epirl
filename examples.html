@@ -113,8 +113,8 @@ I' &amp;= \beta SI - \gamma I
   \lambda' &amp;= -\frac{\partial H}{\partial x}\end{split}\]</div>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{cases}
-\lambda_S' &amp;= u + \beta I (\lambda_I - \lambda_S) - u \lambda_S\\
-\lambda_I' &amp;= 1 + \beta S(\lambda_I - \lambda_S) - \gamma \lambda_I
+\lambda_S' &amp;= -u - \beta I (\lambda_I - \lambda_S) + u \lambda_S\\
+\lambda_I' &amp;= -1 - \beta S(\lambda_I - \lambda_S) + \gamma \lambda_I
 \end{cases}\end{split}\]</div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">def</span> <span class="nf">adjoint_sir</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_interp</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">w1</span><span class="p">,</span> <span class="n">w2</span><span class="p">,</span> <span class="n">w3</span><span class="p">,</span> <span class="n">u_interp</span><span class="p">):</span>
 <span class="linenos">2</span>    <span class="n">l_S</span><span class="p">,</span> <span class="n">l_I</span> <span class="o">=</span> <span class="n">y</span>
