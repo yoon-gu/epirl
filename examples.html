@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="ko" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4. Examples &mdash; Optimal Control of Mathematical Biology Models  문서</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/translations.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="색인" href="genindex.html" />
+    <link rel="search" title="검색" href="search.html" />
+    <link rel="prev" title="3. Auto-Encoder를 활용한 Optimal Control Problem 풀이" href="autoencoder.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Optimal Control of Mathematical Biology Models
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="adjoint_method.html">1. Adjoint Method를 활용한 Optimal Control Problem 풀이</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reinforcement_learning.html">2. Reinforcement Learning을 이용한 Optimal Control Problem 풀이</a></li>
+<li class="toctree-l1"><a class="reference internal" href="autoencoder.html">3. Auto-Encoder를 활용한 Optimal Control Problem 풀이</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">4. Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#sir-model">4.1. SIR Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adjoint-method">4.1.1. Adjoint method</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reinforcement-learning">4.1.2. Reinforcement Learning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#comparision">4.1.3. Comparision</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Optimal Control of Mathematical Biology Models</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><span class="section-number">4. </span>Examples</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/examples.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="examples">
+<h1><span class="section-number">4. </span>Examples<a class="headerlink" href="#examples" title="이 제목에 대한 퍼머링크"></a></h1>
+<section id="sir-model">
+<h2><span class="section-number">4.1. </span>SIR Model<a class="headerlink" href="#sir-model" title="이 제목에 대한 퍼머링크"></a></h2>
+<div class="math notranslate nohighlight">
+\[\min_{u\in\mathcal{U}_{ad}} \int_0^{30} I(t) + u(t)S(t) + u^2(t)~dt\]</div>
+<p>subject to</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{cases}
+S' &amp;= -\beta SI - uS\\
+I' &amp;= \beta SI - \gamma I
+\end{cases}\end{split}\]</div>
+<p>State differential Equaiton을 위한 Python 코드는 다음과 같습니다.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">def</span> <span class="nf">sir</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">u_interp</span><span class="p">):</span>
+<span class="linenos">2</span>    <span class="n">S</span><span class="p">,</span> <span class="n">I</span> <span class="o">=</span> <span class="n">y</span>
+<span class="linenos">3</span>    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">beta</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="n">I</span> <span class="o">-</span> <span class="n">u_interp</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">*</span> <span class="n">S</span><span class="p">,</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="n">I</span> <span class="o">-</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">I</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>다음과 같은 Initial 및 Parameter를 사용했습니다.</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(S(0) = 990\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(I(0) = 10\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\beta = 0.002\)</span></p></li>
+<li><p><span class="math notranslate nohighlight">\(\gamma = 0.5\)</span></p></li>
+</ul>
+<section id="adjoint-method">
+<h3><span class="section-number">4.1.1. </span>Adjoint method<a class="headerlink" href="#adjoint-method" title="이 제목에 대한 퍼머링크"></a></h3>
+<div class="math notranslate nohighlight">
+\[\begin{split}H &amp;= f + \lambda\cdot g\\
+  &amp;= I + uS + u^2 + \begin{bmatrix}\lambda_S\\\lambda_I\end{bmatrix} \cdot \begin{bmatrix}-\beta SI -uS \\ \beta SI - \gamma I \end{bmatrix}\\
+  \lambda' &amp;= -\frac{\partial H}{\partial x}\end{split}\]</div>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{cases}
+\lambda_S' &amp;= u + \beta I (\lambda_I - \lambda_S) - u \lambda_S\\
+\lambda_I' &amp;= 1 + \beta S(\lambda_I - \lambda_S) - \gamma \lambda_I
+\end{cases}\end{split}\]</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">def</span> <span class="nf">adjoint_sir</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_interp</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">w1</span><span class="p">,</span> <span class="n">w2</span><span class="p">,</span> <span class="n">w3</span><span class="p">,</span> <span class="n">u_interp</span><span class="p">):</span>
+<span class="linenos">2</span>    <span class="n">l_S</span><span class="p">,</span> <span class="n">l_I</span> <span class="o">=</span> <span class="n">y</span>
+<span class="linenos">3</span>    <span class="n">S</span><span class="p">,</span> <span class="n">I</span> <span class="o">=</span> <span class="n">x_interp</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="linenos">4</span>    <span class="n">u</span> <span class="o">=</span> <span class="n">u_interp</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="linenos">5</span>    <span class="n">dHdS</span> <span class="o">=</span> <span class="n">w2</span> <span class="o">*</span> <span class="n">u</span> <span class="o">+</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">I</span> <span class="o">*</span> <span class="p">(</span><span class="n">l_I</span> <span class="o">-</span> <span class="n">l_S</span><span class="p">)</span> <span class="o">-</span> <span class="n">u</span> <span class="o">*</span> <span class="n">l_S</span>
+<span class="linenos">6</span>    <span class="n">dHdI</span> <span class="o">=</span> <span class="n">w1</span> <span class="o">+</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="p">(</span><span class="n">l_I</span> <span class="o">-</span> <span class="n">l_S</span><span class="p">)</span> <span class="o">-</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">l_I</span>
+<span class="linenos">7</span>    <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dHdS</span><span class="p">,</span> <span class="n">dHdI</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Simple Gradient를 사용하여 Optimal control을 구하는 코드는 다음과 같습니다.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="linenos"> 2</span><span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">odeint</span>
+<span class="linenos"> 3</span><span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">interp1d</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="n">t0</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="linenos"> 6</span><span class="n">tf</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="linenos"> 7</span><span class="n">beta</span> <span class="o">=</span> <span class="mf">0.002</span>
+<span class="linenos"> 8</span><span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="linenos"> 9</span><span class="n">S0</span> <span class="o">=</span> <span class="mi">990</span>
+<span class="linenos">10</span><span class="n">I0</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="linenos">11</span><span class="n">w1</span><span class="p">,</span> <span class="n">w2</span><span class="p">,</span> <span class="n">w3</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
+<span class="linenos">12</span>
+<span class="linenos">13</span><span class="c1"># Initial</span>
+<span class="linenos">14</span><span class="n">y0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">S0</span><span class="p">,</span> <span class="n">I0</span><span class="p">])</span>
+<span class="linenos">15</span><span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span><span class="n">tf</span><span class="p">,</span> <span class="mi">301</span><span class="p">)</span>
+<span class="linenos">16</span><span class="n">dt</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="linenos">17</span><span class="n">u0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="linenos">18</span>
+<span class="linenos">19</span><span class="n">MaxIter</span> <span class="o">=</span> <span class="mi">500</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="linenos">20</span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">1E-1</span>
+<span class="linenos">21</span><span class="n">old_cost</span> <span class="o">=</span> <span class="mf">1E8</span>
+<span class="linenos">22</span><span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MaxIter</span><span class="p">):</span>
+<span class="linenos">23</span>    <span class="c1"># State</span>
+<span class="linenos">24</span>    <span class="n">u_intp</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">tc</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">tc</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">u0</span><span class="p">)</span>
+<span class="linenos">25</span>    <span class="n">sol</span> <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">sir</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">u_intp</span><span class="p">))</span>
+<span class="linenos">26</span>
+<span class="linenos">27</span>    <span class="c1"># Cost</span>
+<span class="linenos">28</span>    <span class="n">S</span><span class="p">,</span> <span class="n">I</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hsplit</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="linenos">29</span>    <span class="n">S_mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">S</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">S</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.</span>
+<span class="linenos">30</span>    <span class="n">I_mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">I</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">I</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.</span>
+<span class="linenos">31</span>    <span class="n">u_mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">u0</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">u0</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.</span>
+<span class="linenos">32</span>    <span class="n">cost1</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">w1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">I_mid</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+<span class="linenos">33</span>    <span class="n">cost2</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">w2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">S_mid</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">*</span> <span class="n">u_mid</span><span class="p">)</span>
+<span class="linenos">34</span>    <span class="n">cost3</span> <span class="o">=</span> <span class="n">dt</span> <span class="o">*</span> <span class="n">w3</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">u_mid</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+<span class="linenos">35</span>    <span class="n">cost</span> <span class="o">=</span> <span class="n">cost1</span> <span class="o">+</span> <span class="n">cost2</span> <span class="o">+</span> <span class="n">cost3</span>
+<span class="linenos">36</span>
+<span class="linenos">37</span>    <span class="c1"># Adjoint</span>
+<span class="linenos">38</span>    <span class="n">u_intp</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">tc</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">tf</span> <span class="o">-</span> <span class="n">tc</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">u0</span><span class="p">)</span>
+<span class="linenos">39</span>    <span class="n">x_intp</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">tc</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">tf</span> <span class="o">-</span> <span class="n">tc</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">sol</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">tf</span> <span class="o">-</span> <span class="n">tc</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">sol</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])])</span>
+<span class="linenos">40</span>    <span class="n">y_T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+<span class="linenos">41</span>    <span class="n">l_sol</span> <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">adjoint_sir</span><span class="p">,</span> <span class="n">y_T</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">x_intp</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">w1</span><span class="p">,</span> <span class="n">w2</span><span class="p">,</span> <span class="n">w3</span><span class="p">,</span> <span class="n">u_intp</span><span class="p">))</span>
+<span class="linenos">42</span>    <span class="n">l_sol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flipud</span><span class="p">(</span><span class="n">l_sol</span><span class="p">)</span>
+<span class="linenos">43</span>
+<span class="linenos">44</span>    <span class="c1"># Simple Gradient</span>
+<span class="linenos">45</span>    <span class="n">Hu</span> <span class="o">=</span> <span class="n">w2</span> <span class="o">*</span> <span class="n">sol</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">w3</span> <span class="o">*</span> <span class="n">u0</span> <span class="o">-</span> <span class="n">l_sol</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">sol</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="linenos">46</span>    <span class="n">u1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">u0</span> <span class="o">-</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">Hu</span> <span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="linenos">47</span>    <span class="k">if</span> <span class="n">old_cost</span> <span class="o">&lt;</span> <span class="n">cost</span><span class="p">:</span>
+<span class="linenos">48</span>        <span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">/</span> <span class="mf">1.1</span> <span class="c1"># simple adaptive learning rate</span>
+<span class="linenos">49</span>
+<span class="linenos">50</span>    <span class="c1"># Convergence</span>
+<span class="linenos">51</span>    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">old_cost</span> <span class="o">-</span> <span class="n">cost</span><span class="p">)</span> <span class="o">/</span> <span class="n">alpha</span>  <span class="o">&lt;=</span> <span class="mf">1E-7</span><span class="p">:</span>
+<span class="linenos">52</span>        <span class="k">break</span>
+<span class="linenos">53</span>
+<span class="linenos">54</span>    <span class="n">old_cost</span> <span class="o">=</span> <span class="n">cost</span>
+<span class="linenos">55</span>    <span class="n">u0</span> <span class="o">=</span> <span class="n">u1</span>
+</pre></div>
+</div>
+<figure class="align-default" id="id1">
+<a class="reference internal image-reference" href="_images/sir_adjoint_method.png"><img alt="An approximation of the optimal control using the adjoint method" src="_images/sir_adjoint_method.png" style="width: 600px;" /></a>
+<figcaption>
+<p><span class="caption-text">An approximation of the optimal control using the adjoint method</span><a class="headerlink" href="#id1" title="이 이미지에 대한 퍼머링크"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="reinforcement-learning">
+<h3><span class="section-number">4.1.2. </span>Reinforcement Learning<a class="headerlink" href="#reinforcement-learning" title="이 제목에 대한 퍼머링크"></a></h3>
+<p>강화학습은 Discrete time이므로, <span class="math notranslate nohighlight">\(\varDelta t = 1\)</span> 로 설정 후 Reward Design은 Cost function과 동일하게 설정했습니다.</p>
+<div class="math notranslate nohighlight">
+\[R = - I - u S - u^2\]</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="linenos"> 2</span><span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">odeint</span>
+<span class="linenos"> 3</span>
+<span class="linenos"> 4</span><span class="k">def</span> <span class="nf">sir</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
+<span class="linenos"> 5</span>    <span class="n">S</span><span class="p">,</span> <span class="n">I</span> <span class="o">=</span> <span class="n">y</span>
+<span class="linenos"> 6</span>    <span class="n">dydt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="n">beta</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="n">I</span> <span class="o">-</span> <span class="n">u</span> <span class="o">*</span> <span class="n">S</span><span class="p">,</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="n">I</span> <span class="o">-</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">I</span><span class="p">])</span>
+<span class="linenos"> 7</span>    <span class="k">return</span> <span class="n">dydt</span>
+<span class="linenos"> 8</span>
+<span class="linenos"> 9</span><span class="k">class</span> <span class="nc">SirEnvironment</span><span class="p">:</span>
+<span class="linenos">10</span>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="mi">990</span><span class="p">,</span> <span class="n">I0</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="linenos">11</span>        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">S0</span><span class="p">,</span> <span class="n">I0</span><span class="p">])</span>
+<span class="linenos">12</span>        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="mf">0.002</span>
+<span class="linenos">13</span>        <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="linenos">14</span>
+<span class="linenos">15</span>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">S0</span><span class="o">=</span><span class="mi">990</span><span class="p">,</span> <span class="n">I0</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="linenos">16</span>        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">S0</span><span class="p">,</span> <span class="n">I0</span><span class="p">])</span>
+<span class="linenos">17</span>        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="mf">0.002</span>
+<span class="linenos">18</span>        <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="linenos">19</span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span>
+<span class="linenos">20</span>
+<span class="linenos">21</span>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+<span class="linenos">22</span>        <span class="n">sol</span> <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">sir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">101</span><span class="p">),</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span><span class="p">,</span> <span class="n">action</span><span class="p">))</span>
+<span class="linenos">23</span>        <span class="n">new_state</span> <span class="o">=</span> <span class="n">sol</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+<span class="linenos">24</span>        <span class="n">S0</span><span class="p">,</span> <span class="n">I0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span>
+<span class="linenos">25</span>        <span class="n">S</span><span class="p">,</span> <span class="n">I</span> <span class="o">=</span> <span class="n">new_state</span>
+<span class="linenos">26</span>        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">new_state</span>
+<span class="linenos">27</span>        <span class="n">reward</span> <span class="o">=</span> <span class="o">-</span> <span class="n">I</span> <span class="o">-</span> <span class="n">action</span> <span class="o">*</span> <span class="n">S</span> <span class="o">-</span> <span class="n">action</span><span class="o">**</span><span class="mi">2</span>
+<span class="linenos">28</span>        <span class="n">done</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">new_state</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">1.0</span> <span class="k">else</span> <span class="kc">False</span>
+<span class="linenos">29</span>        <span class="k">return</span> <span class="p">(</span><span class="n">new_state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="kn">import</span> <span class="nn">random</span>
+<span class="linenos"> 2</span><span class="kn">import</span> <span class="nn">torch</span>
+<span class="linenos"> 3</span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="linenos"> 4</span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span>
+<span class="linenos"> 5</span><span class="kn">from</span> <span class="nn">dqn_agent</span> <span class="kn">import</span> <span class="n">Agent</span>
+<span class="linenos"> 6</span>
+<span class="linenos"> 7</span><span class="n">env</span> <span class="o">=</span> <span class="n">SirEnvironment</span><span class="p">()</span>
+<span class="linenos"> 8</span><span class="n">agent</span> <span class="o">=</span> <span class="n">Agent</span><span class="p">(</span><span class="n">state_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">action_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="linenos"> 9</span>
+<span class="linenos">10</span><span class="c1">## Parameters</span>
+<span class="linenos">11</span><span class="n">n_episodes</span><span class="o">=</span><span class="mi">2000</span>
+<span class="linenos">12</span><span class="n">max_t</span><span class="o">=</span><span class="mi">30</span>
+<span class="linenos">13</span><span class="n">eps_start</span><span class="o">=</span><span class="mf">1.0</span> <span class="c1"># Too large epsilon for a stable learning</span>
+<span class="linenos">14</span><span class="n">eps_end</span><span class="o">=</span><span class="mf">0.001</span>
+<span class="linenos">15</span><span class="n">eps_decay</span><span class="o">=</span><span class="mf">0.995</span>
+<span class="linenos">16</span>
+<span class="linenos">17</span><span class="c1">## Loop to learn</span>
+<span class="linenos">18</span><span class="n">scores</span> <span class="o">=</span> <span class="p">[]</span>                        <span class="c1"># list containing scores from each episode</span>
+<span class="linenos">19</span><span class="n">scores_window</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>  <span class="c1"># last 100 scores</span>
+<span class="linenos">20</span><span class="n">eps</span> <span class="o">=</span> <span class="n">eps_start</span>                    <span class="c1"># initialize epsilon</span>
+<span class="linenos">21</span><span class="k">for</span> <span class="n">i_episode</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_episodes</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+<span class="linenos">22</span>    <span class="n">state</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="linenos">23</span>    <span class="n">score</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="linenos">24</span>    <span class="n">actions</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="linenos">25</span>    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_t</span><span class="p">):</span>
+<span class="linenos">26</span>        <span class="n">action</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">eps</span><span class="p">)</span>
+<span class="linenos">27</span>        <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+<span class="linenos">28</span>        <span class="n">next_state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+<span class="linenos">29</span>        <span class="n">agent</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">done</span><span class="p">)</span>
+<span class="linenos">30</span>        <span class="n">state</span> <span class="o">=</span> <span class="n">next_state</span>
+<span class="linenos">31</span>        <span class="n">score</span> <span class="o">+=</span> <span class="n">reward</span>
+<span class="linenos">32</span>        <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+<span class="linenos">33</span>            <span class="k">break</span>
+<span class="linenos">34</span>    <span class="n">scores_window</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>       <span class="c1"># save most recent score</span>
+<span class="linenos">35</span>    <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>              <span class="c1"># save most recent score</span>
+<span class="linenos">36</span>    <span class="n">eps</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">eps_end</span><span class="p">,</span> <span class="n">eps_decay</span><span class="o">*</span><span class="n">eps</span><span class="p">)</span> <span class="c1"># decrease epsilon</span>
+</pre></div>
+</div>
+<figure class="align-default" id="id2">
+<a class="reference internal image-reference" href="_images/sir_reinforcement_learning.png"><img alt="An approximation of the optimal control using the reinforcement learning" src="_images/sir_reinforcement_learning.png" style="width: 600px;" /></a>
+<figcaption>
+<p><span class="caption-text">An approximation of the optimal control using the reinforcement learning</span><a class="headerlink" href="#id2" title="이 이미지에 대한 퍼머링크"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="comparision">
+<h3><span class="section-number">4.1.3. </span>Comparision<a class="headerlink" href="#comparision" title="이 제목에 대한 퍼머링크"></a></h3>
+<figure class="align-default" id="id3">
+<a class="reference internal image-reference" href="_images/sir_comparison.png"><img alt="_images/sir_comparison.png" src="_images/sir_comparison.png" style="width: 600px;" /></a>
+<figcaption>
+<p><span class="caption-text">Adjoint method와 강화학습으로 얻은 결과 비교</span><a class="headerlink" href="#id3" title="이 이미지에 대한 퍼머링크"></a></p>
+</figcaption>
+</figure>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="autoencoder.html" class="btn btn-neutral float-left" title="3. Auto-Encoder를 활용한 Optimal Control Problem 풀이" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; 저작권 2022, Yoon-gu Hwang.
+      <span class="lastupdated">최종 업데이트: 2022년 10월 06일
+      </span></p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
