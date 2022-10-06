@@ -14,6 +14,7 @@ Welcome to Optimal Control of Mathematical Biology Models's documentation!
    adjoint_method
    reinforcement_learning
    autoencoder
+   examples
 
 
 Indices and tables
