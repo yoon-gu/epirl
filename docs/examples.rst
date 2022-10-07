@@ -119,10 +119,10 @@ Simple Gradient를 사용하여 Optimal control을 구하는 코드는 다음과
        u0 = u1
 
 .. figure:: images/sir_adjoint_method.png
-  :width: 600
-  :alt: An approximation of the optimal control using the adjoint method
+   :width: 600
+   :alt: An approximation of the optimal control using the adjoint method
 
-  An approximation of the optimal control using the adjoint method
+   An approximation of the optimal control using the adjoint method
 
 
 Reinforcement Learning
@@ -208,18 +208,18 @@ Reinforcement Learning
        eps = max(eps_end, eps_decay*eps) # decrease epsilon
 
 .. figure:: images/sir_reinforcement_learning.png
-  :width: 600
-  :alt: An approximation of the optimal control using the reinforcement learning
+   :width: 600
+   :alt: An approximation of the optimal control using the reinforcement learning
 
-  An approximation of the optimal control using the reinforcement learning
+   An approximation of the optimal control using the reinforcement learning
 
 
 Comparision
 ^^^^^^^^^^^
 .. figure:: images/sir_comparison.png
-  :width: 600
+   :width: 600
 
-  Adjoint method와 강화학습으로 얻은 결과 비교
+   Adjoint method와 강화학습으로 얻은 결과 비교
 
 SLIAR Model
 -----------
