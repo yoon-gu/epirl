@@ -6,6 +6,8 @@
 (base) $ conda activate epi
 (epi) $ pip install mesa
 (epi) $ conda install scipy matplotlib
+(epi) $ conda install pytorch torchvision torchaudio -c pytorch
+(epi) $ pip install sphinx-rtd-theme sphinx-exec-code
 ```
 
 ```bash
