@@ -220,3 +220,18 @@ Comparision
   :width: 600
 
   Adjoint method와 강화학습으로 얻은 결과 비교
+
+SLIAR Model
+-----------
+
+Adjoint method
+^^^^^^^^^^^^^^
+
+Reinforcement Learning
+^^^^^^^^^^^^^^^^^^^^^^
+
+Auto-Encoder
+^^^^^^^^^^^^
+
+Comparision
+^^^^^^^^^^^
