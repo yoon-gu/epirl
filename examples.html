@@ -52,6 +52,13 @@
 <li class="toctree-l3"><a class="reference internal" href="#comparision">4.1.3. Comparision</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#sliar-model">4.2. SLIAR Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">4.2.1. Adjoint method</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">4.2.2. Reinforcement Learning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#auto-encoder">4.2.3. Auto-Encoder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">4.2.4. Comparision</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -183,10 +190,10 @@ I' &amp;= \beta SI - \gamma I
 <span class="linenos">55</span>    <span class="n">u0</span> <span class="o">=</span> <span class="n">u1</span>
 </pre></div>
 </div>
-<figure class="align-default" id="id1">
+<figure class="align-default" id="id4">
 <a class="reference internal image-reference" href="_images/sir_adjoint_method.png"><img alt="An approximation of the optimal control using the adjoint method" src="_images/sir_adjoint_method.png" style="width: 600px;" /></a>
 <figcaption>
-<p><span class="caption-text">An approximation of the optimal control using the adjoint method</span><a class="headerlink" href="#id1" title="이 이미지에 대한 퍼머링크"></a></p>
+<p><span class="caption-text">An approximation of the optimal control using the adjoint method</span><a class="headerlink" href="#id4" title="이 이미지에 대한 퍼머링크"></a></p>
 </figcaption>
 </figure>
 </section>
@@ -264,21 +271,36 @@ I' &amp;= \beta SI - \gamma I
 <span class="linenos">36</span>    <span class="n">eps</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">eps_end</span><span class="p">,</span> <span class="n">eps_decay</span><span class="o">*</span><span class="n">eps</span><span class="p">)</span> <span class="c1"># decrease epsilon</span>
 </pre></div>
 </div>
-<figure class="align-default" id="id2">
+<figure class="align-default" id="id5">
 <a class="reference internal image-reference" href="_images/sir_reinforcement_learning.png"><img alt="An approximation of the optimal control using the reinforcement learning" src="_images/sir_reinforcement_learning.png" style="width: 600px;" /></a>
 <figcaption>
-<p><span class="caption-text">An approximation of the optimal control using the reinforcement learning</span><a class="headerlink" href="#id2" title="이 이미지에 대한 퍼머링크"></a></p>
+<p><span class="caption-text">An approximation of the optimal control using the reinforcement learning</span><a class="headerlink" href="#id5" title="이 이미지에 대한 퍼머링크"></a></p>
 </figcaption>
 </figure>
 </section>
 <section id="comparision">
 <h3><span class="section-number">4.1.3. </span>Comparision<a class="headerlink" href="#comparision" title="이 제목에 대한 퍼머링크"></a></h3>
-<figure class="align-default" id="id3">
+<figure class="align-default" id="id6">
 <a class="reference internal image-reference" href="_images/sir_comparison.png"><img alt="_images/sir_comparison.png" src="_images/sir_comparison.png" style="width: 600px;" /></a>
 <figcaption>
-<p><span class="caption-text">Adjoint method와 강화학습으로 얻은 결과 비교</span><a class="headerlink" href="#id3" title="이 이미지에 대한 퍼머링크"></a></p>
+<p><span class="caption-text">Adjoint method와 강화학습으로 얻은 결과 비교</span><a class="headerlink" href="#id6" title="이 이미지에 대한 퍼머링크"></a></p>
 </figcaption>
 </figure>
+</section>
+</section>
+<section id="sliar-model">
+<h2><span class="section-number">4.2. </span>SLIAR Model<a class="headerlink" href="#sliar-model" title="이 제목에 대한 퍼머링크"></a></h2>
+<section id="id1">
+<h3><span class="section-number">4.2.1. </span>Adjoint method<a class="headerlink" href="#id1" title="이 제목에 대한 퍼머링크"></a></h3>
+</section>
+<section id="id2">
+<h3><span class="section-number">4.2.2. </span>Reinforcement Learning<a class="headerlink" href="#id2" title="이 제목에 대한 퍼머링크"></a></h3>
+</section>
+<section id="auto-encoder">
+<h3><span class="section-number">4.2.3. </span>Auto-Encoder<a class="headerlink" href="#auto-encoder" title="이 제목에 대한 퍼머링크"></a></h3>
+</section>
+<section id="id3">
+<h3><span class="section-number">4.2.4. </span>Comparision<a class="headerlink" href="#id3" title="이 제목에 대한 퍼머링크"></a></h3>
 </section>
 </section>
 </section>
