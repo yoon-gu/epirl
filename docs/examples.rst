@@ -234,7 +234,6 @@ subject to
    L' &= \beta (1-\sigma) S\Lambda - \kappa L\\
    I' &= p\kappa L - \alpha I - \tau I \\
    A' &= (1-p)\kappa L - \eta A \\
-   R' &= f\alpha I + \tau I + \eta A + \nu S\\
    \end{cases}
 with :math:`\Lambda = \epsilon E + (1 - q) I + \delta A` 
 
@@ -243,13 +242,12 @@ State differential Equaiton을 위한 Python 코드는 다음과 같습니다.
 .. code-block:: python
    :linenos:
 
-   def sliar(y, t, beta, sigam, kappa, alpha, tau, p, eta, nu_interp):
-       S, L, I, A , R = y
-       return np.array([-beta * (1 - sigma) * S * Lambda - nu * S, 
-       beta * (1 - sigma) * S * Lambda - kappa * L,
-       p * kappa * L - alpha * I - tau * I,
-       (1 - p) * kappa * L - eta * A,
-       f * alpha * I + tau * I + eta * A + nu * S])
+   def sliar(y, t, beta, sigma, kappa, alpha, tau, p, eta, epsilon, q, delta, nu_interp):
+      S, L, I, A  = y
+      return np.array([-beta * (1 - sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - nu_interp * S, 
+      beta * (1 - sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - kappa * L,
+      p * kappa * L - alpha * I - tau * I,
+      (1 - p) * kappa * L - eta * A])
 
 다음과 같은 Initial 및 Parameter를 사용했습니다.
 
