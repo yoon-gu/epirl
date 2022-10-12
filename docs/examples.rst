@@ -223,6 +223,52 @@ Comparision
 
 SLIAR Model
 -----------
+.. math::
+   \min_{u\in\mathcal{U}_{ad}} \int_0^T PI(t) + Q\nu^2(t) + R\tau^2(t) + W\sigma^2(t) dt
+   
+subject to
+
+.. math::
+   \begin{cases}
+   S' &= -\beta (1-\sigma) S\Lambda - \nu S\\
+   L' &= \beta (1-\sigma) S\Lambda - \kappa L\\
+   I' &= p\kappa L - \alpha I - \tau I \\
+   A' &= (1-p)\kappa L - \eta A \\
+   R' &= f\alpha I + \tau I + \eta A + \nu S\\
+   \end{cases}
+with :math:`\Lambda = \epsilon E + (1 - q) I + \delta A` 
+
+State differential Equaiton을 위한 Python 코드는 다음과 같습니다.
+
+.. code-block:: python
+   :linenos:
+
+   def sliar(y, t, beta, sigam, kappa, alpha, tau, p, eta, nu_interp):
+       S, L, I, A , R = y
+       return np.array([-beta * (1 - sigma) * S * Lambda - nu * S, 
+       beta * (1 - sigma) * S * Lambda - kappa * L,
+       p * kappa * L - alpha * I - tau * I,
+       (1 - p) * kappa * L - eta * A,
+       f * alpha * I + tau * I + eta * A + nu * S])
+
+다음과 같은 Initial 및 Parameter를 사용했습니다.
+
+* :math:`S(0) = 1000000`
+* :math:`E(0) = 0`
+* :math:`I(0) = 1`
+* :math:`A(0) = 0`
+* :math:`\tau(t) = 0`
+* :math:`\sigma(t) = 0`
+* :math:`\beta = 0.581`
+* :math:`\sigma = 0`
+* :math:`\kappa = 0.526/day`
+* :math:`\alpha = 0.244/day`
+* :math:`\eta = 0.244/day`
+* :math:`p = 0.667`
+* :math:`f = 0.98`
+* :math:`\epsilon = 0`
+* :math:`\delta = 1`
+* :math:`q = 0.5`
 
 Adjoint method
 ^^^^^^^^^^^^^^
