@@ -52,7 +52,7 @@ class SliarEnvironment:
         self.state = new_state
         # cost = PI + Qu^2 // P = 1, Q = 10e-06
         reward = - I - 1000000*(action**2)
-        done = True if new_state[1] < 1.0 else False
+        done = True if new_state[2] < 1.0 else False
         return (new_state, reward, done, 0)
 
 
