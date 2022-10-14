@@ -235,7 +235,7 @@ subject to
    I' &= p\kappa L - \alpha I - \tau I \\
    A' &= (1-p)\kappa L - \eta A \\
    \end{cases}
-with :math:`\Lambda = \epsilon E + (1 - q) I + \delta A` 
+with :math:`\Lambda = \epsilon L + (1 - q) I + \delta A` 
 
 State differential Equaiton을 위한 Python 코드는 다음과 같습니다.
 
@@ -255,9 +255,10 @@ State differential Equaiton을 위한 Python 코드는 다음과 같습니다.
 * :math:`E(0) = 0`
 * :math:`I(0) = 1`
 * :math:`A(0) = 0`
+* :math:`R0 = 1.8`
 * :math:`\tau(t) = 0`
 * :math:`\sigma(t) = 0`
-* :math:`\beta = 0.581`
+* :math:`\beta = R0 / S(0)(\frac{\epsilon}{\kappa} + \frac{(1-q)p}{\alpha} + \frac{\delta(1-p)}{\eta})`
 * :math:`\sigma = 0`
 * :math:`\kappa = 0.526/day`
 * :math:`\alpha = 0.244/day`
@@ -267,12 +268,121 @@ State differential Equaiton을 위한 Python 코드는 다음과 같습니다.
 * :math:`\epsilon = 0`
 * :math:`\delta = 1`
 * :math:`q = 0.5`
+* :math:`P = 1`
+* :math:`Q = R = W = S(0)`
 
 Adjoint method
 ^^^^^^^^^^^^^^
 
 Reinforcement Learning
 ^^^^^^^^^^^^^^^^^^^^^^
+강화학습은 Discrete time이므로, :math:`\varDelta t = 1` 로 설정 후 Reward Design은 Cost function과 동일하게 설정했습니다.
+
+.. math::
+   R = - P I - S(0) u^2
+
+.. code-block:: python
+   :linenos:
+
+   import numpy as np
+   from scipy.integrate import odeint
+
+   def sliar(y, t, beta, sigma, kappa, alpha, tau, p, eta, epsilon, q, delta, nu):
+       S, L, I, A  = y
+      dydt = np.array([-beta * (1 - sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - nu * S, 
+                        beta * (1 - sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - kappa * L,
+                        p * kappa * L - alpha * I - tau * I,
+                        (1 - p) * kappa * L - eta * A])
+      return dydt
+
+   class SliarEnvironment:
+      def __init__(self, S0=1000000, L0=0, I0 = 1, A0 = 0):
+         self.state = np.array([S0, L0, I0, A0])
+         self.beta = 0.000000527 
+         self.sigma = 0
+         self.kappa = 0.526
+         self.alpha = 0.244
+         self.tau = 0
+         self.p = 0.667
+         self.eta = 0.244
+         self.epsilon = 0
+         self.q = 0.5
+         self.delta = 1
+
+      def reset(self, S0=1000000, L0=0, I0 = 1, A0 = 0):
+         self.state = np.array([S0, L0, I0, A0])
+         self.beta = 0.000000527 
+         self.sigma = 0
+         self.kappa = 0.526
+         self.alpha = 0.244
+         self.tau = 0
+         self.p = 0.667
+         self.eta = 0.244
+         self.epsilon = 0
+         self.q = 0.5
+         self.delta = 1
+         return self.state
+
+      def step(self, action):
+         sol = odeint(sliar, self.state, np.linspace(0, 1, 101), args=(self.beta,self.sigma, self.kappa, self.alpha, self.tau, self.p, self.eta, self.epsilon, self.q, self.delta, action))
+         new_state = sol[-1, :]
+         S0, L0, I0, A0 = self.state
+         S, L, I, A = new_state
+         self.state = new_state
+         reward = - I - (10**6)*(action**2)
+         done = True if new_state[1] < 1.0 else False
+         return (new_state, reward, done, 0)
+
+
+
+.. code-block:: python
+   :linenos:
+
+   import random
+   import torch
+   import numpy as np
+   from collections import deque
+   from dqn_agent import Agent
+
+   env = SirEnvironment()
+   agent = Agent(state_size=2, action_size=2, seed=0)
+
+   ## Parameters
+   n_episodes=2000
+   max_t=30
+   eps_start=1.0 # Too large epsilon for a stable learning
+   eps_end=0.001
+   eps_decay=0.995
+
+   ## Loop to learn
+   scores = []                        # list containing scores from each episode
+   scores_window = deque(maxlen=100)  # last 100 scores
+   eps = eps_start                    # initialize epsilon
+   for i_episode in range(1, n_episodes+1):
+       state = env.reset()
+       score = 0
+       actions = []
+       for t in range(max_t):
+           action = agent.act(state, eps)
+           actions.append(action)
+           next_state, reward, done, _ = env.step(action)
+           agent.step(state, action, reward, next_state, done)
+           state = next_state
+           score += reward
+           if done:
+               break
+       scores_window.append(score)       # save most recent score
+       scores.append(score)              # save most recent score
+       eps = max(eps_end, eps_decay*eps) # decrease epsilon
+
+.. figure:: images/sir_reinforcement_learning.png
+   :width: 600
+   :alt: An approximation of the optimal control using the reinforcement learning
+
+   An approximation of the optimal control using the reinforcement learning
+
+
+
 
 Auto-Encoder
 ^^^^^^^^^^^^
