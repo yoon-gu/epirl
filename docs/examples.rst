@@ -345,7 +345,7 @@ Reinforcement Learning
    from dqn_agent import Agent
 
    env = SirEnvironment()
-   agent = Agent(state_size=2, action_size=2, seed=0)
+   agent = Agent(state_size=4, action_size=2, seed=0)
 
    ## Parameters
    n_episodes=2000
