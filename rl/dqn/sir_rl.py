@@ -117,7 +117,6 @@ for t in range(max_t):
     action = agent.act(state, eps=0.0)
     actions = np.append(actions, action)
     next_state, reward, done, _ = env.step(action)
-    agent.step(state, action, reward, next_state, done)
     states = np.vstack((states, next_state))
     state = next_state
 
