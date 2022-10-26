@@ -18,7 +18,7 @@ class SliarEnvironment:
     def __init__(self, S0=1000000, L0=0, I0 = 1, A0 = 0):
         self.state = np.array([S0, L0, I0, A0])
         self.beta = 0.000000527
-        self.sigma = 0 
+        self.sigma = 0
         self.kappa = 0.526
         self.alpha = 0.244
         self.tau = 0
@@ -27,7 +27,7 @@ class SliarEnvironment:
         self.epsilon = 0
         self.q = 0.5
         self.delta = 1
-        
+
 
     def reset(self, S0=1000000, L0=0, I0 = 1, A0 = 0):
         self.state = np.array([S0, L0, I0, A0])
@@ -44,7 +44,7 @@ class SliarEnvironment:
         return self.state
 
     def step(self, action):
-        sol = odeint(sliar, self.state, np.linspace(0, 1, 101), 
+        sol = odeint(sliar, self.state, np.linspace(0, 1, 101),
                     args=(self.beta, self.sigma, self.kappa, self.alpha, self.tau, self.p, self.eta, self.epsilon, self.q, self.delta, action))
         new_state = sol[-1, :]
         S0, L0, I0, A0 = self.state
@@ -107,7 +107,7 @@ for i_episode in range(1, n_episodes+1):
         state = next_state
         score += reward
         if done:
-            break 
+            break
     scores_window.append(score)       # save most recent score
     scores.append(score)              # save most recent score
     eps = max(eps_end, eps_decay*eps) # decrease epsilon
