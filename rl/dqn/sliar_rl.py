@@ -51,9 +51,9 @@ class SliarEnvironment:
         S, L, I, A = new_state
         self.state = new_state
         # cost = PI + Qu^2 // P = 1, Q = 10e-06
-        reward = - I - 1000000*(action**2)
+        reward = - I
         done = True if new_state[2] < 1.0 else False
-        return (new_state, reward, done, 0)
+        return (new_state, reward, False, 0)
 
 
 plt.rcParams['figure.figsize'] = (8, 4.5)
@@ -85,10 +85,10 @@ plt.show(block=False)
 env = SliarEnvironment()
 agent = Agent(state_size=4, action_size=2, seed=0)
 ## Parameters
-n_episodes=2000
+n_episodes=10000
 max_t=300
-eps_start=1.0 # Too large epsilon for a stable learning
-eps_end=0.001
+eps_start=0.0 # Too large epsilon for a stable learning
+eps_end=0.000
 eps_decay=0.995
 
 ## Loop to learn
@@ -111,9 +111,9 @@ for i_episode in range(1, n_episodes+1):
     scores_window.append(score)       # save most recent score
     scores.append(score)              # save most recent score
     eps = max(eps_end, eps_decay*eps) # decrease epsilon
-    print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)), end="")
+    print('\rEpisode {}\tAverage Score: {:,.2f}'.format(i_episode, np.mean(scores_window)), end="")
     if i_episode % 400 == 0:
-        print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
+        print('\rEpisode {}\tAverage Score: {:,.2f}'.format(i_episode, np.mean(scores_window)))
         print(np.array(actions)[:5], eps)
     if np.mean(scores_window)>=200.0:
         print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode-100, np.mean(scores_window)))
@@ -141,7 +141,6 @@ for t in range(max_t):
     action = agent.act(state, eps=0.0)
     actions = np.append(actions, action)
     next_state, reward, done, _ = env.step(action)
-    agent.step(state, action, reward, next_state, done)
     states = np.vstack((states, next_state))
     state = next_state
 
