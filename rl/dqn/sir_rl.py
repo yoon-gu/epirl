@@ -37,7 +37,7 @@ def main(conf: DictConfig) -> None:
             S0, I0 = self.state
             S, I = new_state
             self.state = new_state
-            reward = - I
+            reward = - I - action
             done = True if new_state[1] < 1.0 else False
             return (new_state, reward, done, 0)
 
@@ -155,7 +155,7 @@ def main(conf: DictConfig) -> None:
             score += reward
             if done:
                 break
-        run.log({'Reward': score, 'episode': i_episode})
+        run.log({'Reward': score, 'eps': eps, 'episode': i_episode})
         scores_window.append(score)       # save most recent score
         scores.append(score)              # save most recent score
         eps = max(eps_end, eps_decay*eps) # decrease epsilon
@@ -180,6 +180,7 @@ def main(conf: DictConfig) -> None:
     actions = []
     for t in range(max_t):
         action = agent.act(state, eps=0.0)
+        run.log({'Vaccine': action, 't':t})
         actions = np.append(actions, action)
         next_state, reward, done, _ = env.step(action)
         reward_sum += reward
