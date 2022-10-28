@@ -1,15 +1,19 @@
 import random
+import wandb
 import hydra
 import torch
 import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from collections import deque
-import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 from dqn_agent import Agent
 from omegaconf import DictConfig, OmegaConf
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(conf: DictConfig) -> None:
+    run = wandb.init(project='SIR+DQN', job_type='Train an agent')
+
     def sir(y, t, beta, gamma, u):
         S, I = y
         dydt = np.array([-beta * S * I - u * S, beta * S * I - gamma * I])
@@ -37,29 +41,92 @@ def main(conf: DictConfig) -> None:
             done = True if new_state[1] < 1.0 else False
             return (new_state, reward, done, 0)
 
-
-    plt.rcParams['figure.figsize'] = (8, 4.5)
-
-    # 1. Without Control
+    # 1-1. Without Control
     env = SirEnvironment()
     state = env.reset()
     max_t = 30
     states = state
+    reward_sum = 0.0
     actions = []
     for t in range(max_t):
         action = 0
         next_state, reward, done, _ = env.step(action)
         states = np.vstack((states, next_state))
+        reward_sum += reward
+        actions.append(action)
         state = next_state
 
-    plt.clf()
-    plt.plot(range(max_t+1), states[:,0].flatten(), '.-')
-    plt.plot(range(max_t+1), states[:,1].flatten(), '.-')
-    plt.grid()
-    plt.title('SIR model without control')
-    plt.xlabel('day')
-    plt.savefig('SIR_wo_control.png', dpi=300)
-    plt.show(block=False)
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # Add traces
+    fig.add_trace(
+        go.Scatter(x=list(range(max_t+1)), y=states[:,0].flatten(), name="susceptible",
+            mode='lines+markers'),
+        secondary_y=False,
+    )
+    fig.add_trace(
+        go.Scatter(x=list(range(max_t+1)), y=states[:,1].flatten(), name="infected",
+            mode='lines+markers'),
+        secondary_y=False,
+    )
+    fig.add_trace(
+        go.Scatter(x=list(range(max_t+1)), y=actions, name="vaccine",
+            mode='lines+markers'),
+        secondary_y=True,
+    )
+    # Add figure title
+    fig.update_layout(
+        title_text=f'{reward_sum:.2f}: SIR model without control'
+    )
+    # Set x-axis title
+    fig.update_xaxes(title_text="day")
+    # Set y-axes titles
+    fig.update_yaxes(title_text="Population", secondary_y=False)
+    fig.update_yaxes(title_text="Vaccine", secondary_y=True)
+    wandb.log({"SIR without vaccine": fig})
+
+    # 1-2. With Full Control
+    env = SirEnvironment()
+    state = env.reset()
+    max_t = 30
+    states = state
+    actions = []
+    reward_sum = 0.
+    for t in range(max_t):
+        action = 1
+        next_state, reward, done, _ = env.step(action)
+        reward_sum += reward
+        actions.append(action)
+        states = np.vstack((states, next_state))
+        state = next_state
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # Add traces
+    fig.add_trace(
+        go.Scatter(x=list(range(max_t+1)), y=states[:,0].flatten(), name="susceptible",
+            mode='lines+markers'),
+        secondary_y=False,
+    )
+    fig.add_trace(
+        go.Scatter(x=list(range(max_t+1)), y=states[:,1].flatten(), name="infected",
+            mode='lines+markers'),
+        secondary_y=False,
+    )
+    fig.add_trace(
+        go.Scatter(x=list(range(max_t+1)), y=actions, name="vaccine",
+            mode='lines+markers'),
+        secondary_y=True,
+    )
+    # Add figure title
+    fig.update_layout(
+        title_text=f'{reward_sum:.2f}: SIR model with full control'
+    )
+    # Set x-axis title
+    fig.update_xaxes(title_text="day")
+    # Set y-axes titles
+    fig.update_yaxes(title_text="Population", secondary_y=False)
+    fig.update_yaxes(title_text="Vaccine", secondary_y=True)
+    wandb.log({"SIR with full vaccine": fig})
+
 
     # 2. Train DQN Agent
     env = SirEnvironment()
@@ -88,6 +155,7 @@ def main(conf: DictConfig) -> None:
             score += reward
             if done:
                 break
+        run.log({'Reward': score, 'episode': i_episode})
         scores_window.append(score)       # save most recent score
         scores.append(score)              # save most recent score
         eps = max(eps_end, eps_decay*eps) # decrease epsilon
@@ -101,14 +169,6 @@ def main(conf: DictConfig) -> None:
             break
 
     torch.save(agent.qnetwork_local.state_dict(), 'checkpoint.pth')
-
-    plt.clf()
-    plt.plot(scores)
-    plt.grid()
-    plt.ylabel('cumulative future reward')
-    plt.xlabel('episode')
-    plt.savefig('SIR_score.png', dpi=300)
-    plt.show(block=False)
 
     # 3. Visualize Controlled SIR Dynamics
     agent.qnetwork_local.load_state_dict(torch.load('checkpoint.pth'))
@@ -126,23 +186,38 @@ def main(conf: DictConfig) -> None:
         states = np.vstack((states, next_state))
         state = next_state
 
-    plt.clf()
-    plt.plot(range(max_t+1), states[:,0].flatten(), '.-')
-    plt.plot(range(max_t+1), states[:,1].flatten(), '.-')
-    plt.grid()
-    plt.title(f'{reward_sum:.2f}: SIR model with control')
-    plt.xlabel('day')
-    plt.savefig('SIR_w_control.png', dpi=300)
-    plt.show(block=False)
+    # Create figure with secondary y-axis
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # Add traces
+    fig.add_trace(
+        go.Scatter(x=list(range(max_t+1)), y=states[:,0].flatten(), name="susceptible",
+            mode='lines+markers'),
+        secondary_y=False,
+    )
+    fig.add_trace(
+        go.Scatter(x=list(range(max_t+1)), y=states[:,1].flatten(), name="infected",
+            mode='lines+markers'),
+        secondary_y=False,
+    )
+    fig.add_trace(
+        go.Scatter(x=list(range(max_t+1)), y=actions, name="vaccine",
+            mode='lines+markers'),
+        secondary_y=True,
+    )
+    # Add figure title
+    fig.update_layout(
+        title_text=f'{reward_sum:.2f}: SIR model with control'
+    )
+    # Set x-axis title
+    fig.update_xaxes(title_text="day")
+    # Set y-axes titles
+    fig.update_yaxes(title_text="Population", secondary_y=False)
+    fig.update_yaxes(title_text="Vaccine", secondary_y=True)
 
-    plt.clf()
-    plt.plot(range(max_t), actions, '.-k')
-    plt.grid()
-    plt.title(f'{reward_sum:.2f}: Vaccine Control')
-    plt.xlabel('day')
-    plt.savefig('SIR_control_u.png', dpi=300)
-    plt.show(block=False)
-
+    wandb.log({"SIR with vaccine": fig})
+    run.summary.update(conf)
+    run.summary['Final_Reward'] = reward_sum
+    wandb.finish()
 
 if __name__ == '__main__':
     main()
