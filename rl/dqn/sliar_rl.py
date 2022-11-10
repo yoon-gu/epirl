@@ -5,6 +5,7 @@ from collections import deque
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 from dqn_agent import Agent
+from tqdm import tqdm
 
 def sliar(y, t, beta, sigma, kappa, alpha, tau, p, eta, epsilon, q, delta, u):
     S, L, I , A = y
@@ -56,109 +57,98 @@ class SliarEnvironment:
         return (new_state, reward, False, 0)
 
 
-plt.rcParams['figure.figsize'] = (8, 4.5)
+for eps in np.linspace(0., 1, 11):
+    for n_episodes in [10, 100, 1000, 2000, 5000, 10000]:
+        filename1 = f"si_eps_{eps:.2f}_n_{n_episodes:05d}.png"
+        filename2 = f"score_eps_{eps:.2f}_n_{n_episodes:05d}.png"
+        filename3 = f"vaccine_eps_{eps:.2f}_n_{n_episodes:05d}.png"
 
-# 1. Without Control
-env = SliarEnvironment()
-state = env.reset()
-max_t = 300
-states = state
-actions = []
-for t in range(max_t):
-    action = 0
-    next_state, reward, done, _ = env.step(action)
-    states = np.vstack((states, next_state))
-    state = next_state
+        plt.rcParams['figure.figsize'] = (8, 4.5)
 
-plt.clf()
-plt.plot(range(max_t+1), states[:,1].flatten(), '.-', label = 'L')
-plt.plot(range(max_t+1), states[:,2].flatten(), '.-', label = 'I')
-plt.plot(range(max_t+1), states[:,3].flatten(), '.-', label = 'A')
-plt.grid()
-plt.legend()
-plt.title('SLIAR model without control')
-plt.xlabel('day')
-plt.savefig('SLIAR_wo_control.png', dpi=300)
-plt.show(block=False)
+        # 1. Without Control
+        env = SliarEnvironment()
+        state = env.reset()
+        max_t = 300
+        states = state
+        actions = []
+        for t in range(max_t):
+            action = 0
+            next_state, reward, done, _ = env.step(action)
+            states = np.vstack((states, next_state))
+            state = next_state
 
-# 2. Train DQN Agent
-env = SliarEnvironment()
-agent = Agent(state_size=4, action_size=2, seed=0)
-## Parameters
-n_episodes=10000
-max_t=300
-eps_start=0.0 # Too large epsilon for a stable learning
-eps_end=0.000
-eps_decay=0.995
+        plt.clf()
+        plt.plot(range(max_t+1), states[:,1].flatten(), '-', label = 'L')
+        plt.plot(range(max_t+1), states[:,2].flatten(), '-', label = 'I')
+        plt.plot(range(max_t+1), states[:,3].flatten(), '-', label = 'A')
+        plt.grid()
+        plt.legend()
+        plt.title('SLIAR model without control')
+        plt.xlabel('day')
+        plt.savefig(filename1, dpi=300)
+        plt.show(block=False)
 
-## Loop to learn
-scores = []                        # list containing scores from each episode
-scores_window = deque(maxlen=100)  # last 100 scores
-eps = eps_start                    # initialize epsilon
-for i_episode in range(1, n_episodes+1):
-    state = env.reset()
-    score = 0
-    actions = []
-    for t in range(max_t):
-        action = agent.act(state, eps)
-        actions.append(action)
-        next_state, reward, done, _ = env.step(action)
-        agent.step(state, action, reward, next_state, done)
-        state = next_state
-        score += reward
-        if done:
-            break
-    scores_window.append(score)       # save most recent score
-    scores.append(score)              # save most recent score
-    eps = max(eps_end, eps_decay*eps) # decrease epsilon
-    print('\rEpisode {}\tAverage Score: {:,.2f}'.format(i_episode, np.mean(scores_window)), end="")
-    if i_episode % 400 == 0:
-        print('\rEpisode {}\tAverage Score: {:,.2f}'.format(i_episode, np.mean(scores_window)))
-        print(np.array(actions)[:5], eps)
-    if np.mean(scores_window)>=200.0:
-        print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode-100, np.mean(scores_window)))
-        torch.save(agent.qnetwork_local.state_dict(), 'checkpoint2.pth')
-        break
+        # 2. Train DQN Agent
+        env = SliarEnvironment()
+        agent = Agent(state_size=4, action_size=2, seed=0)
+        ## Parameters
+        max_t=300
+        eps_start=eps # Too large epsilon for a stable learning
+        eps_end=0.000
+        eps_decay=0.995
 
-torch.save(agent.qnetwork_local.state_dict(), 'checkpoint.pth')
+        ## Loop to learn
+        scores = []                        # list containing scores from each episode
+        scores_window = deque(maxlen=100)  # last 100 scores
+        eps = eps_start                    # initialize epsilon
+        for i_episode in tqdm(range(1, n_episodes+1), desc=f"eps={eps:.2f}"):
+            state = env.reset()
+            score = 0
+            actions = []
+            for t in range(max_t):
+                action = agent.act(state, eps)
+                actions.append(action)
+                next_state, reward, done, _ = env.step(action)
+                agent.step(state, action, reward, next_state, done)
+                state = next_state
+                score += reward
+                if done:
+                    break
+            scores_window.append(score)       # save most recent score
+            scores.append(score)              # save most recent score
+            eps = max(eps_end, eps_decay*eps) # decrease epsilon
 
-plt.clf()
-plt.plot(scores)
-plt.grid()
-plt.ylabel('cumulative future reward')
-plt.xlabel('episode')
-plt.savefig('SLIAR_score.png', dpi=300)
-plt.show(block=False)
+        torch.save(agent.qnetwork_local.state_dict(), 'checkpoint.pth')
 
-# 3. Visualize Controlled SIR Dynamics
-agent.qnetwork_local.load_state_dict(torch.load('checkpoint.pth'))
-env = SliarEnvironment()
-state = env.reset()
-max_t = 300
-states = state
-actions = []
-for t in range(max_t):
-    action = agent.act(state, eps=0.0)
-    actions = np.append(actions, action)
-    next_state, reward, done, _ = env.step(action)
-    states = np.vstack((states, next_state))
-    state = next_state
+        plt.clf()
+        plt.plot(scores)
+        plt.grid()
+        plt.ylabel('cumulative future reward')
+        plt.xlabel('episode')
+        plt.savefig(filename2, dpi=300)
+        plt.show(block=False)
 
-plt.clf()
-plt.plot(range(max_t+1), states[:,1].flatten(), '.-', label = 'L')
-plt.plot(range(max_t+1), states[:,2].flatten(), '.-', label = 'I')
-plt.plot(range(max_t+1), states[:,3].flatten(), '.-', label = 'A')
-plt.grid()
-plt.legend()
-plt.title('SLIAR model with control')
-plt.xlabel('day')
-plt.savefig('SLIAR_w_control.png', dpi=300)
-plt.show(block=False)
+        # 3. Visualize Controlled SIR Dynamics
+        agent.qnetwork_local.load_state_dict(torch.load('checkpoint.pth'))
+        env = SliarEnvironment()
+        state = env.reset()
+        max_t = 300
+        states = state
+        actions = []
+        for t in range(max_t):
+            action = agent.act(state, eps=0.0)
+            actions = np.append(actions, action)
+            next_state, reward, done, _ = env.step(action)
+            states = np.vstack((states, next_state))
+            state = next_state
 
-plt.clf()
-plt.plot(range(max_t), actions, '.-k')
-plt.grid()
-plt.title('Vaccine Control')
-plt.xlabel('day')
-plt.savefig('SLIAR_control_u.png', dpi=300)
-plt.show(block=False)
+        plt.clf()
+        plt.plot(range(max_t), actions, '-k')
+        plt.grid()
+        plt.title('Vaccine Control')
+        plt.xlabel('day')
+        plt.ylim([-0.1, 1.1])
+        plt.savefig(filename3, dpi=300)
+        plt.show(block=False)
+
+        plt.close('all')
