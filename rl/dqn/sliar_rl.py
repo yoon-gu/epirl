@@ -59,9 +59,9 @@ class SliarEnvironment:
 
 for eps in np.linspace(0., 1, 11):
     for n_episodes in [10, 100, 1000, 2000, 5000, 10000]:
-        filename1 = f"si_eps_{eps:.2f}_n_{n_episodes:05d}.png"
-        filename2 = f"score_eps_{eps:.2f}_n_{n_episodes:05d}.png"
-        filename3 = f"vaccine_eps_{eps:.2f}_n_{n_episodes:05d}.png"
+        filename1 = f"images/si_eps_{eps:.2f}_n_{n_episodes:05d}.png"
+        filename2 = f"images/score_eps_{eps:.2f}_n_{n_episodes:05d}.png"
+        filename3 = f"images/vaccine_eps_{eps:.2f}_n_{n_episodes:05d}.png"
 
         plt.rcParams['figure.figsize'] = (8, 4.5)
 
@@ -77,17 +77,6 @@ for eps in np.linspace(0., 1, 11):
             states = np.vstack((states, next_state))
             state = next_state
 
-        plt.clf()
-        plt.plot(range(max_t+1), states[:,1].flatten(), '-', label = 'L')
-        plt.plot(range(max_t+1), states[:,2].flatten(), '-', label = 'I')
-        plt.plot(range(max_t+1), states[:,3].flatten(), '-', label = 'A')
-        plt.grid()
-        plt.legend()
-        plt.title('SLIAR model without control')
-        plt.xlabel('day')
-        plt.savefig(filename1, dpi=300)
-        plt.show(block=False)
-
         # 2. Train DQN Agent
         env = SliarEnvironment()
         agent = Agent(state_size=4, action_size=2, seed=0)
@@ -101,7 +90,7 @@ for eps in np.linspace(0., 1, 11):
         scores = []                        # list containing scores from each episode
         scores_window = deque(maxlen=100)  # last 100 scores
         eps = eps_start                    # initialize epsilon
-        for i_episode in tqdm(range(1, n_episodes+1), desc=f"eps={eps:.2f}"):
+        for i_episode in tqdm(range(1, n_episodes+1), desc=f"eps={eps:.2f}+n={n_episodes:,}"):
             state = env.reset()
             score = 0
             actions = []
@@ -141,6 +130,18 @@ for eps in np.linspace(0., 1, 11):
             next_state, reward, done, _ = env.step(action)
             states = np.vstack((states, next_state))
             state = next_state
+
+
+        plt.clf()
+        plt.plot(range(max_t+1), states[:,1].flatten(), '.-', label = 'L')
+        plt.plot(range(max_t+1), states[:,2].flatten(), '.-', label = 'I')
+        plt.plot(range(max_t+1), states[:,3].flatten(), '.-', label = 'A')
+        plt.grid()
+        plt.legend()
+        plt.title('SLIAR model with control')
+        plt.xlabel('day')
+        plt.savefig(filename1, dpi=300)
+        plt.show(block=False)
 
         plt.clf()
         plt.plot(range(max_t), actions, '-k')
