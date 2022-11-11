@@ -44,7 +44,11 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="adjoint_method.html">1. Adjoint Method를 활용한 Optimal Control Problem 풀이</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reinforcement_learning.html">2. Reinforcement Learning을 이용한 Optimal Control Problem 풀이</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">3. Auto-Encoder를 활용한 Optimal Control Problem 풀이</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">3. Auto-Encoder를 활용한 Optimal Control Problem 풀이</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#ode">3.1. ODE 풀이</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sir-model">3.2. SIR Model</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">4. Examples</a></li>
 </ul>
 
@@ -61,8 +65,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li><span class="section-number">3. </span>Auto-Encoder를 활용한 Optimal Control Problem 풀이</li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3. </span>Auto-Encoder를 활용한 Optimal Control Problem 풀이</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/autoencoder.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -74,6 +78,107 @@
              
   <section id="auto-encoder-optimal-control-problem">
 <h1><span class="section-number">3. </span>Auto-Encoder를 활용한 Optimal Control Problem 풀이<a class="headerlink" href="#auto-encoder-optimal-control-problem" title="이 제목에 대한 퍼머링크"></a></h1>
+<section id="ode">
+<h2><span class="section-number">3.1. </span>ODE 풀이<a class="headerlink" href="#ode" title="이 제목에 대한 퍼머링크"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">deepxde</span> <span class="k">as</span> <span class="nn">dde</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<span class="k">def</span> <span class="nf">ode_system</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;ODE system.</span>
+<span class="sd">    dy1/dx = y2</span>
+<span class="sd">    dy2/dx = -y1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Most backends</span>
+    <span class="n">y1</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="n">dy1_x</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">jacobian</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">dy2_x</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">jacobian</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Backend jax</span>
+    <span class="c1"># y_val, y_fn = y</span>
+    <span class="c1"># y1, y2 = y_val[:, 0:1], y_val[:, 1:]</span>
+    <span class="c1"># dy1_x, _ = dde.grad.jacobian(y, x, i=0)</span>
+    <span class="c1"># dy2_x, _ = dde.grad.jacobian(y, x, i=1)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">dy1_x</span> <span class="o">-</span> <span class="n">y2</span><span class="p">,</span> <span class="n">dy2_x</span> <span class="o">+</span> <span class="n">y1</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">boundary</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">on_initial</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">on_initial</span>
+
+
+<span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    y1 = sin(x)</span>
+<span class="sd">    y2 = cos(x)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+
+
+<span class="n">geom</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">TimeDomain</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">ic1</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">icbc</span><span class="o">.</span><span class="n">IC</span><span class="p">(</span><span class="n">geom</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="n">boundary</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">ic2</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">icbc</span><span class="o">.</span><span class="n">IC</span><span class="p">(</span><span class="n">geom</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">boundary</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">PDE</span><span class="p">(</span><span class="n">geom</span><span class="p">,</span> <span class="n">ode_system</span><span class="p">,</span> <span class="p">[</span><span class="n">ic1</span><span class="p">,</span> <span class="n">ic2</span><span class="p">],</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">solution</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">num_test</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="n">layer_size</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">50</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">activation</span> <span class="o">=</span> <span class="s2">&quot;tanh&quot;</span>
+<span class="n">initializer</span> <span class="o">=</span> <span class="s2">&quot;Glorot uniform&quot;</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">FNN</span><span class="p">(</span><span class="n">layer_size</span><span class="p">,</span> <span class="n">activation</span><span class="p">,</span> <span class="n">initializer</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">net</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;adam&quot;</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;l2 relative error&quot;</span><span class="p">])</span>
+<span class="n">losshistory</span><span class="p">,</span> <span class="n">train_state</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">iterations</span><span class="o">=</span><span class="mi">20000</span><span class="p">)</span>
+
+<span class="n">dde</span><span class="o">.</span><span class="n">saveplot</span><span class="p">(</span><span class="n">losshistory</span><span class="p">,</span> <span class="n">train_state</span><span class="p">,</span> <span class="n">issave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">isplot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<figure class="align-default" id="id1">
+<a class="reference internal image-reference" href="_images/deeponet_ode_example1.png"><img alt="_images/deeponet_ode_example1.png" src="_images/deeponet_ode_example1.png" style="width: 600px;" /></a>
+<figcaption>
+<p><span class="caption-text">An approximation of the optimal control using the adjoint method</span><a class="headerlink" href="#id1" title="이 이미지에 대한 퍼머링크"></a></p>
+</figcaption>
+</figure>
+<figure class="align-default">
+<a class="reference internal image-reference" href="_images/deeponet_ode_example2.png"><img alt="_images/deeponet_ode_example2.png" src="_images/deeponet_ode_example2.png" style="width: 600px;" /></a>
+</figure>
+</section>
+<section id="sir-model">
+<h2><span class="section-number">3.2. </span>SIR Model<a class="headerlink" href="#sir-model" title="이 제목에 대한 퍼머링크"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    y1 = sin(x)</span>
+<span class="sd">    y2 = cos(x)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+
+<span class="k">def</span> <span class="nf">ode_system</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="c1"># Most backends</span>
+    <span class="n">S</span><span class="p">,</span> <span class="n">I</span> <span class="o">=</span> <span class="n">y</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="n">dS_x</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">jacobian</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">dI_x</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">grad</span><span class="o">.</span><span class="n">jacobian</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">dS_x</span> <span class="o">+</span> <span class="n">beta</span><span class="o">*</span><span class="n">S</span><span class="o">*</span><span class="n">I</span><span class="p">,</span> <span class="n">dI_x</span> <span class="o">-</span> <span class="n">beta</span><span class="o">*</span><span class="n">S</span><span class="o">*</span><span class="n">I</span> <span class="o">+</span> <span class="n">gamma</span><span class="o">*</span><span class="n">I</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">boundary</span><span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">on_initial</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">on_initial</span>
+
+<span class="n">geom</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">TimeDomain</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+<span class="n">ic1</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">icbc</span><span class="o">.</span><span class="n">IC</span><span class="p">(</span><span class="n">geom</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">990</span><span class="p">,</span> <span class="n">boundary</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">ic2</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">icbc</span><span class="o">.</span><span class="n">IC</span><span class="p">(</span><span class="n">geom</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="n">boundary</span><span class="p">,</span> <span class="n">component</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">PDE</span><span class="p">(</span><span class="n">geom</span><span class="p">,</span> <span class="n">ode_system</span><span class="p">,</span> <span class="p">[</span><span class="n">ic1</span><span class="p">,</span> <span class="n">ic2</span><span class="p">],</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">num_test</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="n">layer_size</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">50</span><span class="p">]</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">activation</span> <span class="o">=</span> <span class="s2">&quot;tanh&quot;</span>
+<span class="n">initializer</span> <span class="o">=</span> <span class="s2">&quot;Glorot uniform&quot;</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">FNN</span><span class="p">(</span><span class="n">layer_size</span><span class="p">,</span> <span class="n">activation</span><span class="p">,</span> <span class="n">initializer</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">dde</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">net</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;adam&quot;</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
+<span class="n">losshistory</span><span class="p">,</span> <span class="n">train_state</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">iterations</span><span class="o">=</span><span class="mi">200000</span><span class="p">)</span>
+
+<span class="n">dde</span><span class="o">.</span><span class="n">saveplot</span><span class="p">(</span><span class="n">losshistory</span><span class="p">,</span> <span class="n">train_state</span><span class="p">,</span> <span class="n">issave</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">isplot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 
 
@@ -88,7 +193,7 @@
 
   <div role="contentinfo">
     <p>&#169; 저작권 2022, Yoon-gu Hwang.
-      <span class="lastupdated">최종 업데이트: 2022년 10월 28일
+      <span class="lastupdated">최종 업데이트: 2022년 11월 11일
       </span></p>
   </div>
 
