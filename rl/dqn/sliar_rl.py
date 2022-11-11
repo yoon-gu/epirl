@@ -57,11 +57,11 @@ class SliarEnvironment:
         return (new_state, reward, False, 0)
 
 
-for eps in np.linspace(0., 1, 11):
-    for n_episodes in [10, 100, 1000, 2000, 5000, 10000]:
-        filename1 = f"images/si_eps_{eps:.2f}_n_{n_episodes:05d}.png"
-        filename2 = f"images/score_eps_{eps:.2f}_n_{n_episodes:05d}.png"
-        filename3 = f"images/vaccine_eps_{eps:.2f}_n_{n_episodes:05d}.png"
+for eps_ in np.linspace(0., 1, 11):
+    for n_episodes in [10, 100, 1000, 2000, 5000]:
+        filename1 = f"images/si_eps_{eps_:.2f}_n_{n_episodes:05d}.png"
+        filename2 = f"images/score_eps_{eps_:.2f}_n_{n_episodes:05d}.png"
+        filename3 = f"images/vaccine_eps_{eps_:.2f}_n_{n_episodes:05d}.png"
 
         plt.rcParams['figure.figsize'] = (8, 4.5)
 
@@ -82,7 +82,7 @@ for eps in np.linspace(0., 1, 11):
         agent = Agent(state_size=4, action_size=2, seed=0)
         ## Parameters
         max_t=300
-        eps_start=eps # Too large epsilon for a stable learning
+        eps_start=eps_ # Too large epsilon for a stable learning
         eps_end=0.000
         eps_decay=0.995
 
@@ -90,7 +90,7 @@ for eps in np.linspace(0., 1, 11):
         scores = []                        # list containing scores from each episode
         scores_window = deque(maxlen=100)  # last 100 scores
         eps = eps_start                    # initialize epsilon
-        for i_episode in tqdm(range(1, n_episodes+1), desc=f"eps={eps:.2f}+n={n_episodes:,}"):
+        for i_episode in tqdm(range(1, n_episodes+1), desc=f"eps={eps_:.2f}+n={n_episodes:05}"):
             state = env.reset()
             score = 0
             actions = []
