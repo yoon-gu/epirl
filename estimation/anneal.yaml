@@ -1,0 +1,11 @@
+maxiter: 1000
+minimizer_kwargs: null
+initial_temp: 5230.0
+restart_temp_ratio: 2.0E-05
+visit: 2.62
+accept: -5.0
+maxfun: 10000000.0
+seed: null
+no_local_search: false
+x0: null
+local_search_options: null
