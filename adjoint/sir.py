@@ -5,36 +5,46 @@ from scipy.interpolate import interp1d
 import matplotlib.pylab as plt
 from tqdm import tqdm
 
-S, I, u = sp.symbols('S I u')
-alpha, beta, gamma = sp.symbols('alpha beta gamma')
+# State
+S, I = sp.symbols('S I')
+state = [S, I]
 
+# Control
+u = sp.symbols('u')
+
+# Parmaeters
+beta, gamma, w1, w2, w3 = sp.symbols('beta gamma w_1 w_2 w_3')
+params = [beta, gamma, w1, w2, w3]
+
+# Adjoints
 l_S, l_I = sp.symbols('lambda_S lambda_I')
+adjoint = [l_S, l_I]
 l = sp.Matrix([l_S, l_I])
 
 f = I + u*S + u**2
 g = sp.Matrix([-beta*S*I -u*S, beta*S*I - gamma*I])
-
 H = sp.Matrix([f + l.dot(g)])
 
-dHdx = H.jacobian([S, I])
-dHdl = H.jacobian([l_S, l_I])
+dHdx = H.jacobian(state)
+dHdl = H.jacobian(adjoint)
 dHdu = H.jacobian([u])
 
-dHdx_fn = sp.lambdify([l_S, l_I, S, I, beta, gamma, u], dHdx)
-dHdl_fn = sp.lambdify([l_S, l_I, S, I, beta, gamma, u], dHdl)
-dHdu_fn = sp.lambdify([l_S, l_I, S, I, beta, gamma, u], dHdu)
+dHdx_fn = sp.lambdify([*adjoint, *state, *params, u], dHdx)
+dHdl_fn = sp.lambdify([*adjoint, *state, *params, u], dHdl)
+dHdu_fn = sp.lambdify([*adjoint, *state, *params, u], dHdu)
 
-def state_de(y, t, beta_, gamma_, u_interp):
+def state_de(y, t, beta_, gamma_, w1, w2, w3, u_interp):
     S_, I_ = y
     u_ = u_interp(t)
-    return dHdl_fn(0, 0, S_, I_, beta_, gamma_, u_)[0]
+    return dHdl_fn(0, 0, S_, I_, beta_, gamma_, w1, w2, w3, u_)[0]
 
 def adjoint_de(y, t, x_interp, beta_, gamma_, w1, w2, w3, u_interp):
     l_S_, l_I_ = y
     S_, I_ = x_interp(t)
     u_ = u_interp(t)
-    val = -dHdx_fn(l_S_, l_I_, S_, I_, beta_, gamma_, u_)[0]
+    val = -dHdx_fn(l_S_, l_I_, S_, I_, beta_, gamma_, w1, w2, w3, u_)[0]
     return val
+
 
 t0 = 0
 tf = 30
@@ -57,7 +67,7 @@ old_cost = 1E8
 for it in tqdm(range(MaxIter)):
     # State
     u_intp = lambda tc: np.interp(tc, t, u0)
-    sol = odeint(state_de, y0, t, args=(beta, gamma, u_intp))
+    sol = odeint(state_de, y0, t, args=(beta, gamma, w1, w2, w3, u_intp))
 
     # Cost
     S, I = np.hsplit(sol, 2)
@@ -78,7 +88,7 @@ for it in tqdm(range(MaxIter)):
 
     # Simple Gradient
     # Hu = w2 * sol[:, 0] + 2 * w3 * u0 - l_sol[:,0] * sol[:, 0]
-    Hu = dHdu_fn(l_sol[:,0], l_sol[:,1], sol[:, 0], sol[:, 1], beta, gamma, u0)[0][0]
+    Hu = dHdu_fn(l_sol[:,0], l_sol[:,1], sol[:, 0], sol[:, 1], beta, gamma, w1, w2, w3, u0)[0][0]
     u1 = np.clip(u0 - alpha * Hu , 0, 1)
     if old_cost < cost:
         alpha = alpha / 1.1 # simple adaptive learning rate
