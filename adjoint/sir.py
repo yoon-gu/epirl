@@ -61,6 +61,7 @@ params = [beta, gamma, w1, w2, w3]
 
 # Initial
 y0 = np.array([S0, I0])
+state_dim = len(y0)
 t = np.linspace(t0,tf, 301)
 dt = t[1] - t[0]
 u0 = np.ones_like(t)
@@ -74,22 +75,20 @@ for it in tqdm(range(MaxIter)):
     sol = odeint(state_de, y0, t, args=(*params, u_intp))
 
     # Cost
-    S, I = np.hsplit(sol, 2)
-    S_mid = (S[1:] + S[:-1]) / 2.
-    I_mid = (I[1:] + I[:-1]) / 2.
+    state_mid = [(ss[1:] + ss[:-1]) / 2. for ss in np.hsplit(sol, state_dim)]
     u_mid = (u0[1:] + u0[:-1]) / 2.
-    cost = np.sum ( dt * cost_fn(S_mid, I_mid, *params, np.expand_dims(u_mid, 1)) )
+    cost = np.sum ( dt * cost_fn(*state_mid, *params, np.expand_dims(u_mid, 1)) )
 
     # Adjoint
     u_intp = lambda tc: np.interp(tf - tc, t, u0)
-    x_intp = lambda tc: np.array([np.interp(tf - tc, t, sol[:, k]) for k in range(sol.shape[1])])
+    x_intp = lambda tc: np.array([np.interp(tf - tc, t, sol[:, k]) for k in range(state_dim)])
     y_T = np.array([0,0])
     l_sol = odeint(adjoint_de, y_T, t, args=(x_intp, *params, u_intp))
     l_sol = np.flipud(l_sol)
 
     # Simple Gradient
-    l_sols = [l_sol[:, k] for k in range(l_sol.shape[1])]
-    sols = [sol[:, k] for k in range(sol.shape[1])]
+    l_sols = [l_sol[:, k] for k in range(state_dim)]
+    sols = [sol[:, k] for k in range(state_dim)]
 
     Hu = dHdu_fn(*l_sols, *sols, *params, u0)[0][0]
     u1 = np.clip(u0 - alpha * Hu , 0, 1)
