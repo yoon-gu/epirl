@@ -37,16 +37,16 @@ dHdl_fn = sp.lambdify([*adjoint, *state, *params, u], dHdl)
 dHdu_fn = sp.lambdify([*adjoint, *state, *params, u], dHdu)
 
 # ODE Systems
-def state_de(y, t, beta_, gamma_, w1, w2, w3, u_interp):
+def state_de(y, t, params, u_interp):
     S_, I_ = y
     u_ = u_interp(t)
-    return dHdl_fn(0, 0, S_, I_, beta_, gamma_, w1, w2, w3, u_)[0]
+    return dHdl_fn(0, 0, S_, I_, *params, u_)[0]
 
-def adjoint_de(y, t, x_interp, beta_, gamma_, w1, w2, w3, u_interp):
+def adjoint_de(y, t, x_interp, params, u_interp):
     l_S_, l_I_ = y
     S_, I_ = x_interp(t)
     u_ = u_interp(t)
-    val = -dHdx_fn(l_S_, l_I_, S_, I_, beta_, gamma_, w1, w2, w3, u_)[0]
+    val = -dHdx_fn(l_S_, l_I_, S_, I_, *params, u_)[0]
     return val
 
 t0 = 0
@@ -72,7 +72,7 @@ old_cost = 1E8
 for it in tqdm(range(MaxIter)):
     # State
     u_intp = lambda tc: np.interp(tc, t, u0)
-    sol = odeint(state_de, y0, t, args=(*params, u_intp))
+    sol = odeint(state_de, y0, t, args=(params, u_intp))
 
     # Cost
     state_mid = [(ss[1:] + ss[:-1]) / 2. for ss in np.hsplit(sol, state_dim)]
@@ -83,7 +83,7 @@ for it in tqdm(range(MaxIter)):
     u_intp = lambda tc: np.interp(tf - tc, t, u0)
     x_intp = lambda tc: np.array([np.interp(tf - tc, t, sol[:, k]) for k in range(state_dim)])
     y_T = np.array([0,0])
-    l_sol = odeint(adjoint_de, y_T, t, args=(x_intp, *params, u_intp))
+    l_sol = odeint(adjoint_de, y_T, t, args=(x_intp, params, u_intp))
     l_sol = np.flipud(l_sol)
 
     # Simple Gradient
