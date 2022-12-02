@@ -26,11 +26,11 @@ g = sp.Matrix([-beta*S*I -u*S, beta*S*I - gamma*I])
 H = sp.Matrix([f + l.dot(g)])
 
 
-# Automation
 dHdx = H.jacobian(state)
 dHdl = H.jacobian(adjoint)
 dHdu = H.jacobian([u])
 
+# Automation
 cost_fn = sp.lambdify([*state, *params, u], f)
 dHdx_fn = sp.lambdify([*adjoint, *state, *params, u], dHdx)
 dHdl_fn = sp.lambdify([*adjoint, *state, *params, u], dHdl)
@@ -38,15 +38,10 @@ dHdu_fn = sp.lambdify([*adjoint, *state, *params, u], dHdu)
 
 # ODE Systems
 def state_de(y, t, params, u_interp):
-    S_, I_ = y
-    u_ = u_interp(t)
-    return dHdl_fn(0, 0, S_, I_, *params, u_)[0]
+    return dHdl_fn(*(y*0), *y, *params, u_interp(t))[0]
 
 def adjoint_de(y, t, x_interp, params, u_interp):
-    l_S_, l_I_ = y
-    S_, I_ = x_interp(t)
-    u_ = u_interp(t)
-    val = -dHdx_fn(l_S_, l_I_, S_, I_, *params, u_)[0]
+    val = -dHdx_fn(*y, *x_interp(t), *params, u_interp(t))[0]
     return val
 
 t0 = 0
