@@ -82,14 +82,16 @@ for it in tqdm(range(MaxIter)):
 
     # Adjoint
     u_intp = lambda tc: np.interp(tf - tc, t, u0)
-    x_intp = lambda tc: np.array([np.interp(tf - tc, t, sol[:, 0]), np.interp(tf - tc, t, sol[:, 1])])
+    x_intp = lambda tc: np.array([np.interp(tf - tc, t, sol[:, k]) for k in range(sol.shape[1])])
     y_T = np.array([0,0])
     l_sol = odeint(adjoint_de, y_T, t, args=(x_intp, *params, u_intp))
     l_sol = np.flipud(l_sol)
 
     # Simple Gradient
-    # Hu = w2 * sol[:, 0] + 2 * w3 * u0 - l_sol[:,0] * sol[:, 0]
-    Hu = dHdu_fn(l_sol[:,0], l_sol[:,1], sol[:, 0], sol[:, 1], beta, gamma, w1, w2, w3, u0)[0][0]
+    l_sols = [l_sol[:, k] for k in range(l_sol.shape[1])]
+    sols = [sol[:, k] for k in range(sol.shape[1])]
+
+    Hu = dHdu_fn(*l_sols, *sols, *params, u0)[0][0]
     u1 = np.clip(u0 - alpha * Hu , 0, 1)
     if old_cost < cost:
         alpha = alpha / 1.1 # simple adaptive learning rate
