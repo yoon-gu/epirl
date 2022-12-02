@@ -21,10 +21,12 @@ l_S, l_I = sp.symbols('lambda_S lambda_I')
 adjoint = [l_S, l_I]
 l = sp.Matrix([l_S, l_I])
 
-f = I + u*S + u**2
+f = w1 * I + w2 * u*S + w3 * u**2
 g = sp.Matrix([-beta*S*I -u*S, beta*S*I - gamma*I])
 H = sp.Matrix([f + l.dot(g)])
 
+
+# Automation
 dHdx = H.jacobian(state)
 dHdl = H.jacobian(adjoint)
 dHdu = H.jacobian([u])
@@ -33,6 +35,7 @@ dHdx_fn = sp.lambdify([*adjoint, *state, *params, u], dHdx)
 dHdl_fn = sp.lambdify([*adjoint, *state, *params, u], dHdl)
 dHdu_fn = sp.lambdify([*adjoint, *state, *params, u], dHdu)
 
+# ODE Systems
 def state_de(y, t, beta_, gamma_, w1, w2, w3, u_interp):
     S_, I_ = y
     u_ = u_interp(t)
@@ -45,7 +48,6 @@ def adjoint_de(y, t, x_interp, beta_, gamma_, w1, w2, w3, u_interp):
     val = -dHdx_fn(l_S_, l_I_, S_, I_, beta_, gamma_, w1, w2, w3, u_)[0]
     return val
 
-
 t0 = 0
 tf = 30
 beta = 0.002
@@ -54,6 +56,7 @@ S0 = 990
 I0 = 10
 w1, w2, w3 = 1, 1, 1
 
+params = [beta, gamma, w1, w2, w3]
 
 # Initial
 y0 = np.array([S0, I0])
@@ -67,7 +70,7 @@ old_cost = 1E8
 for it in tqdm(range(MaxIter)):
     # State
     u_intp = lambda tc: np.interp(tc, t, u0)
-    sol = odeint(state_de, y0, t, args=(beta, gamma, w1, w2, w3, u_intp))
+    sol = odeint(state_de, y0, t, args=(*params, u_intp))
 
     # Cost
     S, I = np.hsplit(sol, 2)
@@ -83,7 +86,7 @@ for it in tqdm(range(MaxIter)):
     u_intp = lambda tc: np.interp(tf - tc, t, u0)
     x_intp = lambda tc: np.array([np.interp(tf - tc, t, sol[:, 0]), np.interp(tf - tc, t, sol[:, 1])])
     y_T = np.array([0,0])
-    l_sol = odeint(adjoint_de, y_T, t, args=(x_intp, beta, gamma, w1, w2, w3, u_intp))
+    l_sol = odeint(adjoint_de, y_T, t, args=(x_intp, *params, u_intp))
     l_sol = np.flipud(l_sol)
 
     # Simple Gradient
