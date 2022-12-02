@@ -31,6 +31,7 @@ dHdx = H.jacobian(state)
 dHdl = H.jacobian(adjoint)
 dHdu = H.jacobian([u])
 
+cost_fn = sp.lambdify([*state, *params, u], f)
 dHdx_fn = sp.lambdify([*adjoint, *state, *params, u], dHdx)
 dHdl_fn = sp.lambdify([*adjoint, *state, *params, u], dHdl)
 dHdu_fn = sp.lambdify([*adjoint, *state, *params, u], dHdu)
@@ -77,10 +78,7 @@ for it in tqdm(range(MaxIter)):
     S_mid = (S[1:] + S[:-1]) / 2.
     I_mid = (I[1:] + I[:-1]) / 2.
     u_mid = (u0[1:] + u0[:-1]) / 2.
-    cost1 = dt * w1 * np.sum(I_mid.flatten())
-    cost2 = dt * w2 * np.sum(S_mid.flatten() * u_mid)
-    cost3 = dt * w3 * np.sum(u_mid.flatten() ** 2)
-    cost = cost1 + cost2 + cost3
+    cost = np.sum ( dt * cost_fn(S_mid, I_mid, *params, np.expand_dims(u_mid, 1)) )
 
     # Adjoint
     u_intp = lambda tc: np.interp(tf - tc, t, u0)
