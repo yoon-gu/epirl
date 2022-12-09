@@ -80,7 +80,7 @@ def run(conf: DictConfig):
         # Adjoint
         u_intp = lambda tc: np.interp(tf - tc, t, u0)
         x_intp = lambda tc: np.array([np.interp(tf - tc, t, sol[:, k]) for k in range(state_dim)])
-        y_T = np.array([0,0])
+        y_T = y0*0
         l_sol = odeint(adjoint_de, y_T, t, args=(x_intp, params, u_intp))
         l_sol = np.flipud(l_sol)
 
