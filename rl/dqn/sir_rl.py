@@ -20,15 +20,15 @@ def main(conf: DictConfig) -> None:
         return dydt
 
     class SirEnvironment:
-        def __init__(self, S0=990, I0=10):
+        def __init__(self, S0=conf.S0, I0=conf.I0):
             self.state = np.array([S0, I0])
-            self.beta = 0.002
-            self.gamma = 0.5
+            self.beta = conf.beta
+            self.gamma = conf.gamma
 
-        def reset(self, S0=990, I0=10):
+        def reset(self, S0=conf.S0, I0=conf.I0):
             self.state = np.array([S0, I0])
-            self.beta = 0.002
-            self.gamma = 0.5
+            self.beta = conf.beta
+            self.gamma = conf.gamma
             return self.state
 
         def step(self, action):
@@ -44,7 +44,7 @@ def main(conf: DictConfig) -> None:
     # 1-1. Without Control
     env = SirEnvironment()
     state = env.reset()
-    max_t = 30
+    max_t = conf.tf
     states = state
     reward_sum = 0.0
     actions = []
@@ -87,7 +87,7 @@ def main(conf: DictConfig) -> None:
     # 1-2. With Full Control
     env = SirEnvironment()
     state = env.reset()
-    max_t = 30
+    max_t = conf.tf
     states = state
     actions = []
     reward_sum = 0.
@@ -133,7 +133,7 @@ def main(conf: DictConfig) -> None:
     agent = Agent(state_size=states.shape[1], action_size=2, seed=0)
     ## Parameters
     n_episodes=conf.n_episodes
-    max_t=30
+    max_t=conf.tf
     eps_start=conf.eps_start
     eps_end= min(eps_start, conf.eps_end)
     eps_decay=conf.eps_decay
@@ -174,7 +174,7 @@ def main(conf: DictConfig) -> None:
     agent.qnetwork_local.load_state_dict(torch.load('checkpoint.pth'))
     env = SirEnvironment()
     state = env.reset()
-    max_t = 30
+    max_t = conf.tf
     states = state
     reward_sum = 0.
     actions = []
