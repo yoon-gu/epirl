@@ -1,0 +1,15 @@
+beta: 0.002
+gamma: 0.5
+t0: 0
+tf: 30
+S0: 990
+I0: 10
+w1: 1
+w2: 1
+w3: 1
+MaxIter: 1000
+alpha: 0.1
+
+hydra:
+  job:
+    chdir: true
