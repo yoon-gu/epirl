@@ -13,3 +13,6 @@ alpha: 0.1
 hydra:
   job:
     chdir: true
+
+defaults:
+  - override hydra/launcher: joblib
