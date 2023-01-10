@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="ko" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>4. Examples &mdash; Optimal Control of Mathematical Biology Models  문서</title>
@@ -12,9 +12,6 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
         <script src="_static/translations.js"></script>
@@ -329,11 +326,32 @@ A' &amp;= (1-p)\kappa L - \eta A \\
 <li><p><span class="math notranslate nohighlight">\(\epsilon = 0\)</span></p></li>
 <li><p><span class="math notranslate nohighlight">\(\delta = 1\)</span></p></li>
 <li><p><span class="math notranslate nohighlight">\(q = 0.5\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(P = 1\)</span></p></li>
-<li><p><span class="math notranslate nohighlight">\(Q = R = W = S(0)\)</span></p></li>
 </ul>
 <section id="id1">
 <h3><span class="section-number">4.2.1. </span>Adjoint method<a class="headerlink" href="#id1" title="이 제목에 대한 퍼머링크"></a></h3>
+<div class="math notranslate nohighlight">
+\[\begin{split}H &amp;= f + \lambda\cdot g\\
+  &amp;= PI + Q\nu^2 + R\tau^2 + W\sigma^2 + \begin{bmatrix}\lambda_S\\\lambda_L\\\lambda_I\\\lambda_A\end{bmatrix} \cdot \begin{bmatrix}-\beta (1-\sigma) S\Lambda - \nu S\\ \beta (1-\sigma) S\Lambda - \kappa L\\ p\kappa L - \alpha I - \tau I \\ (1-p)\kappa L - \eta A \end{bmatrix}\\
+  \lambda' &amp;= -\frac{\partial H}{\partial x}\end{split}\]</div>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{cases}
+\lambda_S' &amp;= \nu \lambda_S + \beta (1- \sigma)\Lambda(\lambda_S - \lambda_L) \\
+\lambda_L' &amp;= \beta (1- \sigma) \epsilon S (\lambda_S - \lambda_L)- \kappa p (\lambda_I - \lambda_A) + \kappa (\lambda_L - \lambda_A)\\
+\lambda_I' &amp;= - P + \beta (1 - q) (1 - \sigma) S (\lambda_S - \lambda_L) + \lambda_I (\alpha + \tau)\\
+\lambda_A' &amp;= \beta (1- \sigma) \delta S (\lambda_S - \lambda_L) +  \eta \lambda_A\\
+\end{cases}\end{split}\]</div>
+<p>with <span class="math notranslate nohighlight">\(\Lambda = \epsilon L + (1 - q) I + \delta A\)</span></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="linenos">1</span><span class="k">def</span> <span class="nf">adjoint_sliar</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">x_interp</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">kappa</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">eta</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">delta</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">nu_interp</span><span class="p">):</span>
+<span class="linenos">2</span>   <span class="n">l_S</span><span class="p">,</span> <span class="n">l_L</span><span class="p">,</span> <span class="n">l_I</span><span class="p">,</span> <span class="n">l_A</span>  <span class="o">=</span> <span class="n">y</span>
+<span class="linenos">3</span>   <span class="n">S</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">A</span> <span class="o">=</span> <span class="n">x_interp</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="linenos">4</span>   <span class="n">nu</span> <span class="o">=</span> <span class="n">nu_interp</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="linenos">5</span>   <span class="n">dHdS</span> <span class="o">=</span> <span class="n">beta</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">epsilon</span> <span class="o">*</span> <span class="n">L</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">q</span><span class="p">)</span> <span class="o">*</span> <span class="n">I</span> <span class="o">+</span> <span class="n">delta</span> <span class="o">*</span> <span class="n">A</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">l_S</span> <span class="o">-</span> <span class="n">l_L</span><span class="p">)</span> <span class="o">+</span> <span class="n">nu</span> <span class="o">*</span> <span class="n">l_S</span>
+<span class="linenos">6</span>   <span class="n">dHdL</span> <span class="o">=</span> <span class="n">beta</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">*</span> <span class="n">epsilon</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="p">(</span><span class="n">l_S</span> <span class="o">-</span> <span class="n">l_L</span><span class="p">)</span> <span class="o">-</span> <span class="n">kappa</span> <span class="o">*</span> <span class="n">p</span> <span class="o">*</span> <span class="p">(</span><span class="n">l_I</span> <span class="o">-</span> <span class="n">l_A</span><span class="p">)</span> <span class="o">+</span> <span class="n">kappa</span><span class="p">(</span><span class="n">l_L</span> <span class="o">-</span> <span class="n">l_A</span><span class="p">)</span>
+<span class="linenos">7</span>   <span class="n">dHdI</span> <span class="o">=</span> <span class="o">-</span><span class="n">P</span> <span class="o">+</span> <span class="n">beta</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">q</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">*</span> <span class="n">S</span> <span class="p">(</span><span class="n">l_S</span> <span class="o">-</span> <span class="n">l_L</span><span class="p">)</span> <span class="o">+</span> <span class="n">l_I</span> <span class="o">*</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">+</span> <span class="n">tau</span><span class="p">)</span>
+<span class="linenos">8</span>   <span class="n">dHdR</span> <span class="o">=</span> <span class="n">beta</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sigma</span><span class="p">)</span> <span class="o">*</span> <span class="n">delta</span> <span class="o">*</span> <span class="n">S</span> <span class="o">*</span> <span class="p">(</span><span class="n">l_S</span> <span class="o">-</span> <span class="n">l_L</span><span class="p">)</span> <span class="o">+</span> <span class="n">eta</span> <span class="o">*</span> <span class="n">l_A</span>
+<span class="linenos">9</span>   <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dHdS</span><span class="p">,</span> <span class="n">dHdL</span><span class="p">,</span> <span class="n">dHdI</span><span class="p">,</span> <span class="n">dHdR</span><span class="p">])</span>
+</pre></div>
+</div>
 </section>
 <section id="id2">
 <h3><span class="section-number">4.2.2. </span>Reinforcement Learning<a class="headerlink" href="#id2" title="이 제목에 대한 퍼머링크"></a></h3>
@@ -455,7 +473,7 @@ A' &amp;= (1-p)\kappa L - \eta A \\
 
   <div role="contentinfo">
     <p>&#169; 저작권 2022, Yoon-gu Hwang.
-      <span class="lastupdated">최종 업데이트: 2022년 12월 09일
+      <span class="lastupdated">최종 업데이트: 2023년 1월 10일
       </span></p>
   </div>
 
