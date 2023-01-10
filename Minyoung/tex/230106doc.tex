@@ -68,12 +68,12 @@
 % new page
 
 \foreach \n in {1000, 2000, 4000, 8000, 16000} {
-    \begin{frame}{Case 1_Learning result}
+    \begin{frame}{Case 1\_ Learning result}
         
-        After 1000 episodes learning,
+        After \texttt{\n} episodes learning,
 
         \begin{figure}[tb]
-            \includegraphics[height=0.45\textheight]{../발표 자료/SLIAR_score_0.8,10000.png}
+            \includegraphics[height=0.45\textheight]{../발표 자료/\n result.png}
         \end{figure}
     \end{frame}
 }

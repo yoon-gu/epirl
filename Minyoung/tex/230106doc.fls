@@ -1317,6 +1317,16 @@ INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
 INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
 INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
 INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+INPUT ./230106doc.out
+INPUT 230106doc.out
+INPUT ./230106doc.out
+INPUT 230106doc.out
+INPUT ./230106doc.out
+INPUT 230106doc.out
+INPUT ./230106doc.out
+INPUT 230106doc.out
+INPUT ./230106doc.out
+INPUT ./230106doc.out
 OUTPUT 230106doc.out
 INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/translator/translator-basic-dictionary-English.dict
 INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/translator/translator-basic-dictionary-English.dict
@@ -1342,6 +1352,9 @@ INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/translator/translator-theorem-d
 INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/translator/translator-theorem-dictionary-English.dict
 INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/translator/translator-theorem-dictionary-English.dict
 INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/translator/translator-theorem-dictionary-English.dict
+INPUT ./230106doc.nav
+INPUT 230106doc.nav
+INPUT 230106doc.nav
 INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvr7t.tfm
 INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvr7t.tfm
 INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvr7t.tfm
@@ -1368,63 +1381,3 @@ INPUT ../발표 자료/SLIAR_score_0.995,10000.png
 INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvr7t.tfm
 INPUT c:/Users/texlive/2022/texmf-dist/fonts/vf/adobe/helvetic/phvr7t.vf
 INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvr8r.tfm
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmss12.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmss10.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmss8.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmmi12.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/public/cm/cmex10.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/amsfonts/umsa.fd
-INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/amsfonts/umsa.fd
-INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/amsfonts/umsa.fd
-INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/amsfonts/umsa.fd
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam7.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/amsfonts/umsb.fd
-INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/amsfonts/umsb.fd
-INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/amsfonts/umsb.fd
-INPUT c:/Users/texlive/2022/texmf-dist/tex/latex/amsfonts/umsb.fd
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm7.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvr7t.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvr7t.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvro7t.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvro7t.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvro7t.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/vf/adobe/helvetic/phvro7t.vf
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvro8r.tfm
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/vf/adobe/helvetic/phvro7t.vf
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/tfm/adobe/helvetic/phvro8r.tfm
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-INPUT ../발표 자료/SLIAR_score_0.8,10000.png
-OUTPUT 230106doc.nav
-OUTPUT 230106doc.toc
-OUTPUT 230106doc.snm
-INPUT 230106doc.aux
-INPUT ./230106doc.out
-INPUT ./230106doc.out
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/enc/dvips/base/8r.enc
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb
-INPUT c:/Users/texlive/2022/texmf-dist/fonts/type1/urw/helvetic/uhvro8a.pfb
