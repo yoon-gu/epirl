@@ -268,11 +268,35 @@ State differential Equaiton을 위한 Python 코드는 다음과 같습니다.
 * :math:`\epsilon = 0`
 * :math:`\delta = 1`
 * :math:`q = 0.5`
-* :math:`P = 1`
-* :math:`Q = R = W = S(0)`
 
 Adjoint method
 ^^^^^^^^^^^^^^
+.. math::
+   H &= f + \lambda\cdot g\\
+     &= PI + Q\nu^2 + R\tau^2 + W\sigma^2 + \begin{bmatrix}\lambda_S\\\lambda_L\\\lambda_I\\\lambda_A\end{bmatrix} \cdot \begin{bmatrix}-\beta (1-\sigma) S\Lambda - \nu S\\ \beta (1-\sigma) S\Lambda - \kappa L\\ p\kappa L - \alpha I - \tau I \\ (1-p)\kappa L - \eta A \end{bmatrix}\\
+     \lambda' &= -\frac{\partial H}{\partial x}
+
+.. math::
+   \begin{cases}
+   \lambda_S' &= \nu \lambda_S + \beta (1- \sigma)\Lambda(\lambda_S - \lambda_L) \\
+   \lambda_L' &= \beta (1- \sigma) \epsilon S (\lambda_S - \lambda_L)- \kappa p (\lambda_I - \lambda_A) + \kappa (\lambda_L - \lambda_A)\\
+   \lambda_I' &= - P + \beta (1 - q) (1 - \sigma) S (\lambda_S - \lambda_L) + \lambda_I (\alpha + \tau)\\
+   \lambda_A' &= \beta (1- \sigma) \delta S (\lambda_S - \lambda_L) +  \eta \lambda_A\\
+   \end{cases}
+with :math:`\Lambda = \epsilon L + (1 - q) I + \delta A` 
+
+.. code-block:: python
+   :linenos:
+
+   def adjoint_sliar(y, t, x_interp, beta, sigma, kappa, alpha, tau, p, eta, epsilon, q, delta, P, nu_interp):
+      l_S, l_L, l_I, l_A  = y
+      S, L, I, A = x_interp(t)
+      nu = nu_interp(t)
+      dHdS = beta * (1 - sigma) * (epsilon * L + (1 - q) * I + delta * A) * (l_S - l_L) + nu * l_S
+      dHdL = beta * (1 - sigma) * epsilon * S * (l_S - l_L) - kappa * p * (l_I - l_A) + kappa(l_L - l_A)
+      dHdI = -P + beta * (1 - q) * (1 - sigma) * S (l_S - l_L) + l_I * (alpha + tau)
+      dHdR = beta * (1 - sigma) * delta * S * (l_S - l_L) + eta * l_A
+      return np.array([dHdS, dHdL, dHdI, dHdR])
 
 Reinforcement Learning
 ^^^^^^^^^^^^^^^^^^^^^^
