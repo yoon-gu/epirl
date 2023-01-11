@@ -65,17 +65,76 @@
 \end{frame}
 
 
-% new page
+% Case 1
 
 \foreach \n in {1000, 2000, 4000, 8000, 16000} {
     \begin{frame}{Case 1\_ Learning result}
         
-        After \texttt{\n} episodes learning,
+        {\fontsize{10}{50} \selectfont After \n \, episodes learning:}
 
         \begin{figure}[tb]
-            \includegraphics[height=0.45\textheight]{../발표 자료/\n result.png}
+            \includegraphics[height=0.5\textheight]{../발표 자료/\n_result.png}
         \end{figure}
     \end{frame}
+
+    \begin{frame}{Case 1\_ Learning result}
+
+        \begin{figure}[tb]
+            \includegraphics[height=0.4\textheight]{../발표 자료/\n_action.png}
+            \includegraphics[height=0.4\textheight]{../발표 자료/\n_value.png}
+        \end{figure}
+
+    \end{frame}
 }
+
+
+% new page
+
+\begin{frame}{Case 2}
+
+    \begin{wrapfigure}{R}{0.5\textwidth}
+        \includegraphics[width=0.48\textwidth]{../발표 자료/SLIAR_w_control_0.8,10000.png}
+        \includegraphics[width=0.48\textwidth]{../발표 자료/SLIAR_score_0.8,10000.png}
+    \end{wrapfigure}
+
+    {\fontsize{15}{50} \selectfont Initial}
+    % {\fontsize{size}{baselineskip} \selectfont content}
+    \hfill \break
+    \hfill \break
+
+    \; max time: 300
+    \hfill \break
+
+    \; epsilon start: 1
+    \hfill \break
+
+    \; epsilon decay: 0.8
+
+\end{frame}
+
+
+% Case 2
+
+\foreach \n in {1000, 2000, 4000, 8000, 12000} {
+    \begin{frame}{Case 2\_ Learning result}
+        
+        {\fontsize{10}{50} \selectfont After \n \, episodes learning:}
+
+        \begin{figure}[tb]
+            \includegraphics[height=0.5\textheight]{../발표 자료/80decay_\n_result.png}
+        \end{figure}
+    \end{frame}
+
+    \begin{frame}{Case 2\_ Learning result}
+
+        \begin{figure}[tb]
+            \includegraphics[height=0.4\textheight]{../발표 자료/80decay_\n_action.png}
+            \includegraphics[height=0.4\textheight]{../발표 자료/80decay_\n_value.png}
+        \end{figure}
+
+    \end{frame}
+}
+
+
 
 \end{document}
