@@ -9,6 +9,9 @@ eps_start: 1.0
 eps_end: 0.001
 eps_decay: 0.995
 
+nu_max: 0.01
+tau_max: 0.05
+
 hydra:
   job:
     chdir: true
