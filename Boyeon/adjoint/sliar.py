@@ -17,15 +17,15 @@ def run(conf: DictConfig):
     u = sp.symbols('u')
 
     # Parmaeters
-    alpha, beta, sigma, epsilon, q, delta, kappa, p, tau, eta, P, Q = sp.symbols('alpha beta sigma epsilon q delta kappa p tau eta P Q')
-    params = [alpha, beta, sigma, epsilon, q, delta, kappa, p, tau, eta, P, Q]
+    beta, sigma, kappa, alpha, tau, p, eta, epsilon, q, delta, P, Q, R, W = sp.symbols('beta sigma kappa alpha tau p eta epsilon q delta P Q R W')
+    params = [beta, sigma, kappa, alpha, tau, p, eta, epsilon, q, delta, P, Q, R, W]
 
     # Adjoints
     l_S, l_L, l_I, l_A = sp.symbols('lambda_S lambda_L lambda_I lambda_A')
     adjoint = [l_S, l_L, l_I, l_A]
     l = sp.Matrix([l_S, l_L, l_I, l_A])
 
-    f = P*I + Q*u**2
+    f = P*I + Q*u**2 + R*tau**2 + W*sigma**2
     g = sp.Matrix(
         [
         - beta * (1-sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - u * S,
@@ -57,9 +57,9 @@ def run(conf: DictConfig):
     t0 = conf.t0
     tf = conf.tf
 
-    params = [  conf.alpha, conf.beta, conf.sigma, conf.epsilon, \
-                conf.q, conf.delta, conf.kappa, conf.p, conf.tau, \
-                conf.eta, conf.P, conf.Q
+    params = [  conf.beta, conf.sigma, conf.kappa, conf.alpha, \
+                conf.tau, conf.p, conf.eta, conf.epsilon, conf.q, \
+                conf.delta, conf.P, conf.Q, conf.R, conf.W
              ]
 
     # Initial
@@ -72,6 +72,7 @@ def run(conf: DictConfig):
     MaxIter = conf.MaxIter
     update_weight = conf.update_weight
     old_cost = 1E8
+    costs = [old_cost]
     for it in tqdm(range(MaxIter+1)):
         # State
         u_intp = lambda tc: np.interp(tc, t, u0)
@@ -103,6 +104,7 @@ def run(conf: DictConfig):
             break
 
         old_cost = cost
+        costs.append(old_cost)
         u0 = u1
 
     plt.clf()
@@ -114,6 +116,11 @@ def run(conf: DictConfig):
     plt.plot(t, u0)
     plt.grid()
     plt.savefig('control.png')
+
+    plt.clf()
+    plt.plot(costs)
+    plt.grid()
+    plt.savefig('cost.png')
 
 if __name__ == '__main__':
     run()

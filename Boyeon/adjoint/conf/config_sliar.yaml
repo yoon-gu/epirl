@@ -19,6 +19,8 @@ delta: 1
 
 P: 1
 Q: 1
+R: 0
+W: 0
 
 MaxIter: 1000
 update_weight: 0.1
