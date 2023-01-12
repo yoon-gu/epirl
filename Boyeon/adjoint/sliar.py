@@ -54,16 +54,29 @@ def run(conf: DictConfig):
         val = -dHdx_fn(*y, *x_interp(t), *params, u_interp(t))[0]
         return val
 
-    t0 = conf.t0
-    tf = conf.tf
+    # parameters
+    t0 = 0
+    tf = 300
+    S0 = 1E6
+    L0 = 0
+    I0 = 1
+    A0 = 0
+    sigma = 0 
+    kappa = 0.526
+    alpha = 0.244
+    tau = 0
+    p = 0.667
+    eta = 0.244
+    epsilon = 0
+    q = 0.5
+    delta = 1
+    R0 = 1.9847
+    beta = R0/(S0 * ((epsilon / kappa) + ((1 - q)*p/alpha) + (delta*(1-p)/eta)))
 
-    params = [  conf.beta, conf.sigma, conf.kappa, conf.alpha, \
-                conf.tau, conf.p, conf.eta, conf.epsilon, conf.q, \
-                conf.delta, conf.P, conf.Q, conf.R, conf.W
-             ]
+    params = [beta, sigma, kappa, alpha, tau, p, eta, epsilon, q, delta, conf.P, conf.Q, conf.R, conf.W]
 
     # Initial
-    y0 = np.array([conf.S0, conf.L0, conf.I0, conf.A0])
+    y0 = np.array([S0, L0, I0, A0])
     state_dim = len(y0)
     t = np.linspace(t0,tf, 301)
     dt = t[1] - t[0]
@@ -108,14 +121,26 @@ def run(conf: DictConfig):
         u0 = u1
 
     plt.clf()
-    plt.plot(t, sol)
+    fig, ax1 = plt.subplots()
+    ax1.plot(t, sol[:,0], '.-b', label = 'S')
+    ax1.legend(loc='upper left')
+    ax2 = ax1.twinx()
+    ax2.plot(t, sol[:,1], '.-y', label = 'L')
+    ax2.plot(t, sol[:,2], '.-r', label = 'I')
+    ax2.plot(t, sol[:,3], '.-g', label = 'A')
+    ax2.legend(loc='lower right')
     plt.grid()
-    plt.savefig('state.png')
+    plt.legend()
+    plt.title('SLIAR model with control'+' cost : '+str(old_cost))
+    plt.xlabel('day')
+    plt.savefig('SLIAR_w_control_adj.png', dpi=300)
+    plt.show(block=False)
 
-    plt.clf()
     plt.plot(t, u0)
     plt.grid()
-    plt.savefig('control.png')
+    plt.title(' cost : '+str(old_cost))
+    plt.savefig('control_nu.png', dpi=300)
+    plt.show()
 
     plt.clf()
     plt.plot(costs)
