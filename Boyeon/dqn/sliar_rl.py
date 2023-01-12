@@ -10,6 +10,11 @@ from scipy.integrate import odeint
 from dqn_agent import Agent
 from omegaconf import DictConfig, OmegaConf
 
+ACTIONS = [(0, 0),
+           (1, 0),
+           (0, 1),
+           (1, 1) ]
+
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(conf : DictConfig) -> None:
     def sliar(y, t, beta, sigma, kappa, alpha, tau, p, eta, epsilon, q, delta, nu):
@@ -61,6 +66,8 @@ def main(conf : DictConfig) -> None:
             return self.state
 
         def step(self, action):
+            v, tau = ACTIONS[action]
+
             if action == 0 or action == 1:
                 action1 = action
                 action2 = 0
