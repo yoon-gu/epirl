@@ -19,9 +19,9 @@ ACTIONS = [(0, 0),
 def main(conf : DictConfig) -> None:
     def sliar(y, t, beta, sigma, kappa, alpha, tau, p, eta, epsilon, q, delta, nu):
         S, L, I , A = y
-        dydt = np.array([- beta * (1-sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - 0.01 * nu * S,
+        dydt = np.array([- beta * (1-sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - conf.nu_max * nu * S,
                         beta * (1-sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - kappa * L,
-                        p * kappa * L - alpha * I - tau * I,
+                        p * kappa * L - alpha * I - conf.tau_max * tau * I,
                         (1 - p) * kappa * L  - eta * A])
         return dydt
 
@@ -41,7 +41,7 @@ def main(conf : DictConfig) -> None:
             self.beta = self.R0/(S0 * ((self.epsilon / self.kappa) + ((1 - self.q)*self.p/self.alpha) + (self.delta*(1-self.p)/self.eta)))
             self.P = 1
             self.Q = 1E6
-            self.R = 0
+            self.R = 1E6
             self.W = 0
 
 
@@ -94,12 +94,17 @@ def main(conf : DictConfig) -> None:
         state = next_state
 
     plt.clf()
-    plt.plot(range(max_t+1), states[:,1].flatten(), '.-', label = 'L')
-    plt.plot(range(max_t+1), states[:,2].flatten(), '.-', label = 'I')
-    plt.plot(range(max_t+1), states[:,3].flatten(), '.-', label = 'A')
+    fig, ax1 = plt.subplots()
+    ax1.plot(range(max_t+1), states[:,0], '.-b', label = 'S')
+    ax1.legend(loc='upper left')
+    ax2 = ax1.twinx()
+    ax2.plot(range(max_t+1), states[:,1], '.-y', label = 'L')
+    ax2.plot(range(max_t+1), states[:,2], '.-r', label = 'I')
+    ax2.plot(range(max_t+1), states[:,3], '.-g', label = 'A')
+    ax2.legend(loc='lower right')
     plt.grid()
     plt.legend()
-    plt.title('SLIAR model without control')
+    plt.title('SLIAR model w/o control')
     plt.xlabel('day')
     plt.savefig('SLIAR_wo_control.png', dpi=300)
     plt.show(block=False)
@@ -168,9 +173,14 @@ def main(conf : DictConfig) -> None:
         state = next_state
 
     plt.clf()
-    plt.plot(range(max_t+1), states[:,1].flatten(), '.-', label = 'L')
-    plt.plot(range(max_t+1), states[:,2].flatten(), '.-', label = 'I')
-    plt.plot(range(max_t+1), states[:,3].flatten(), '.-', label = 'A')
+    fig, ax1 = plt.subplots()
+    ax1.plot(range(max_t+1), states[:,0], '.-b', label = 'S')
+    ax1.legend(loc='upper left')
+    ax2 = ax1.twinx()
+    ax2.plot(range(max_t+1), states[:,1], '.-y', label = 'L')
+    ax2.plot(range(max_t+1), states[:,2], '.-r', label = 'I')
+    ax2.plot(range(max_t+1), states[:,3], '.-g', label = 'A')
+    ax2.legend(loc='lower right')
     plt.grid()
     plt.legend()
     plt.title('SLIAR model with control')
@@ -183,6 +193,7 @@ def main(conf : DictConfig) -> None:
     plt.grid()
     plt.title('Vaccine Control')
     plt.xlabel('day')
+    plt.yticks([0, 1, 2, 3], label = ['(0,0)', '(0,1)', '(1,0)','(1,1)'])
     plt.savefig('SLIAR_control_u.png', dpi=300)
     plt.show(block=False)
 
