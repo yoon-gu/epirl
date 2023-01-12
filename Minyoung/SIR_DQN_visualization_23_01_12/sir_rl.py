@@ -32,7 +32,9 @@ def main(conf: DictConfig) -> None:
             return self.state
 
         def step(self, action):
-            sol = odeint(sir, self.state, np.linspace(0, 1, 101), args=(self.beta, self.gamma, action))
+            sol = odeint(sir, self.state, np.linspace(0, 1, 101), args=(self.beta, self.gamma, 0.3*action))
+            # 30%만 백신접종
+            
             new_state = sol[-1, :]
             S0, I0 = self.state
             S, I = new_state
