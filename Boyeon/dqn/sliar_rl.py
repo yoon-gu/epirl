@@ -66,22 +66,15 @@ def main(conf : DictConfig) -> None:
             return self.state
 
         def step(self, action):
-            v, tau = ACTIONS[action]
-
-            if action == 0 or action == 1:
-                action1 = action
-                action2 = 0
-            else :
-                action2 = action
-                action1 = 0
+            nu, tau = ACTIONS[action]
             sol = odeint(sliar, self.state, np.linspace(0, 1, 101),
-                        args=(self.beta, self.sigma, self.kappa, self.alpha, action2, self.p, self.eta, self.epsilon, self.q, self.delta, action1))
+                        args=(self.beta, self.sigma, self.kappa, self.alpha, tau, self.p, self.eta, self.epsilon, self.q, self.delta, nu))
             new_state = sol[-1, :]
             S0, L0, I0, A0 = self.state
             S, L, I, A = new_state
             self.state = new_state
             # cost = PI + Qu^2 // P = 1, Q = 10e-06
-            reward = - self.P * I - self.Q * (0.01 * action1 ** 2) - self.R * (0.05 * round(action2/3,-1) ** 2)
+            reward = - self.P * I - self.Q * ((conf.nu_max * nu) ** 2) - self.R * ((conf.tau_max * tau) ** 2)
             done = True if new_state[2] < 1.0 else False
             return (new_state, reward, False, 0)
 
