@@ -74,7 +74,7 @@ def main(conf : DictConfig) -> None:
             S, L, I, A = new_state
             self.state = new_state
             # cost = PI + Qu^2 // P = 1, Q = 10e-06
-            reward = - self.P * I - self.Q * (0.01 * action1 ** 2) - self.R * (0.05 * round(action2/4,-1) ** 2)
+            reward = - self.P * I - self.Q * (0.01 * action1 ** 2) - self.R * (0.05 * round(action2/3,-1) ** 2)
             done = True if new_state[2] < 1.0 else False
             return (new_state, reward, False, 0)
 
