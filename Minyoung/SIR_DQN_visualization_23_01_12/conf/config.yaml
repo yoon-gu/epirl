@@ -1,10 +1,11 @@
 beta: 0.0002
 gamma: 0.5
+mu: 0.01
 tf: 30
 S0: 9990
 I0: 10
 
-n_episodes: 100
+n_episodes: 1000
 eps_start: 1.0
 eps_end: 0.001
 eps_decay: 0.995

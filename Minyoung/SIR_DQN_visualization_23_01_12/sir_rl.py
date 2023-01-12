@@ -24,6 +24,7 @@ def main(conf: DictConfig) -> None:
             self.state = np.array([S0, I0])
             self.beta = conf.beta
             self.gamma = conf.gamma
+            self.mu = conf.mu
 
         def reset(self, S0=conf.S0, I0=conf.I0):
             self.state = np.array([S0, I0])
@@ -32,8 +33,8 @@ def main(conf: DictConfig) -> None:
             return self.state
 
         def step(self, action):
-            sol = odeint(sir, self.state, np.linspace(0, 1, 101), args=(self.beta, self.gamma, 0.3*action))
-            # 30%만 백신접종
+            sol = odeint(sir, self.state, np.linspace(0, 1, 101), args=(self.beta, self.gamma, self.mu*action))
+            # 1%만 백신접종
             
             new_state = sol[-1, :]
             S0, I0 = self.state
