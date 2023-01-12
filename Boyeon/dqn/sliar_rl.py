@@ -47,7 +47,6 @@ def main(conf : DictConfig) -> None:
 
         def reset(self, S0=1000000, L0=0, I0 = 1, A0 = 0):
             self.state = np.array([S0, L0, I0, A0])
-            self.beta = 0.000000527
             self.sigma = 0
             self.kappa = 0.526
             self.alpha = 0.244
@@ -190,10 +189,10 @@ def main(conf : DictConfig) -> None:
 
     plt.clf()
     plt.plot(range(max_t), actions, '.-k')
+    plt.yticks([0,1,2,3], labels=['(0,0)', '(0,1)', '(1,0)', '(1,1)'])
     plt.grid()
     plt.title('Vaccine Control')
     plt.xlabel('day')
-    plt.yticks([0, 1, 2, 3], label = ['(0,0)', '(0,1)', '(1,0)','(1,1)'])
     plt.savefig('SLIAR_control_u.png', dpi=300)
     plt.show(block=False)
 
