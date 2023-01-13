@@ -1,11 +1,13 @@
-beta: 0.0005
+beta: 0.0010
 gamma: 0.5
-nu: 0.1
+nu: 0.2
 tf: 30
 S0: 9990
 I0: 10
 
-n_episodes: 2000
+n_episodes: 100
+repeat_times: 20
+
 eps_start: 1.0
 eps_end: 0.001
 eps_decay: 0.995
