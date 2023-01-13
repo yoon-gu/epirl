@@ -233,13 +233,13 @@ def main(conf: DictConfig) -> None:
             scores_window.append(score)       # save most recent score
             scores.append(score)              # save most recent score
             eps = max(eps_end, eps_decay*eps) # decrease epsilon
-            print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)), end="")
+            print('\rEpisode {}\tAverage Score: {:.2f}'.format((j-1)*n_episodes + i_episode, np.mean(scores_window)), end="")
             
             if i_episode % 100 == 0:
-                print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores_window)))
+                print('\rEpisode {}\tAverage Score: {:.2f}'.format((j-1)*n_episodes + i_episode, np.mean(scores_window)))
                 print(np.array(actions)[:5], eps)
             if np.mean(scores_window)>=200.0:
-                print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode-100, np.mean(scores_window)))
+                print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format((j-1)*n_episodes + i_episode-100, np.mean(scores_window)))
                 torch.save(agent.qnetwork_local.state_dict(), 'checkpoint2.pth')
                 break
 
@@ -357,6 +357,7 @@ def main(conf: DictConfig) -> None:
     run.summary.update(conf)
     run.summary['Final_Reward'] = reward_sum
     wandb.finish()
+    print("hello")
 
 if __name__ == '__main__':
     main()
