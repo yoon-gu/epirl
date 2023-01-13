@@ -23,6 +23,7 @@ def main(conf : DictConfig) -> None:
     class SliarEnvironment:
         def __init__(self, S0=1000000, L0=0, I0 = 1, A0 = 0):
             self.state = np.array([S0, L0, I0, A0])
+            self.beta = 0.000000527
             self.sigma = 0
             self.kappa = 0.526
             self.alpha = 0.244
@@ -32,12 +33,6 @@ def main(conf : DictConfig) -> None:
             self.epsilon = 0
             self.q = 0.5
             self.delta = 1
-            self.R0 = 1.9847
-            self.beta = self.R0/(S0 * ((self.epsilon / self.kappa) + ((1 - self.q)*self.p/self.alpha) + (self.delta*(1-self.p)/self.eta)))
-            self.P = 1
-            self.Q = 1
-            self.R = 0
-            self.W = 0
 
 
         def reset(self, S0=1000000, L0=0, I0 = 1, A0 = 0):
@@ -52,12 +47,6 @@ def main(conf : DictConfig) -> None:
             self.epsilon = 0
             self.q = 0.5
             self.delta = 1
-            self.R0 = 1.9847
-            self.beta = self.R0/(S0 * ((self.epsilon / self.kappa) + ((1 - self.q)*self.p/self.alpha) + (self.delta*(1-self.p)/self.eta)))
-            self.P = 1
-            self.Q = 1
-            self.R = 0
-            self.W = 0
             return self.state
 
         def step(self, action):
@@ -68,7 +57,7 @@ def main(conf : DictConfig) -> None:
             S, L, I, A = new_state
             self.state = new_state
             # cost = PI + Qu^2 // P = 1, Q = 10e-06
-            reward = - self.P * I - self.Q * action ** 2
+            reward = - I - action ** 2
             done = True if new_state[2] < 1.0 else False
             return (new_state, reward, False, 0)
 
