@@ -108,9 +108,9 @@ def run(conf: DictConfig):
         sols = [sol[:, k] for k in range(state_dim)]
 
         Hu = dHdu_fn(*l_sols, *sols, *params, u0)[0][0]
-        u1 = np.clip(u0 - update_weight * Hu , 0, 1)
+        u1 = np.clip(u0 - update_weight * Hu , 0, 0.01)
         if old_cost < cost:
-            update_weight = update_weight / 1.0001 # simple adaptive learning rate
+            update_weight = update_weight / 10 # simple adaptive learning rate
 
         # Convergence
         if np.abs(old_cost - cost) / update_weight  <= conf.tolerance:
