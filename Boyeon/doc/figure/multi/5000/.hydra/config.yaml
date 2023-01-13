@@ -1,0 +1,11 @@
+beta: 0.002
+gamma: 0.5
+tf: 30
+S0: 990
+I0: 10
+n_episodes: 5000
+eps_start: 1.0
+eps_end: 0.001
+eps_decay: 0.995
+nu_max: 0.01
+tau_max: 0.05
