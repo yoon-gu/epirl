@@ -1,2 +1,1 @@
-import os
-print(os.getcwd())
+print(int(0.00015*100000))
