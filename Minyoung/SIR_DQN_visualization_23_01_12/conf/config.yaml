@@ -1,0 +1,20 @@
+beta: 0.00015
+gamma: 0.5
+nu: 0.2
+tf: 30
+S0: 9990
+I0: 10
+
+n_episodes: 100
+repeat_times: 20
+eps_start: 1
+eps_end: 0
+eps_decay: 0.995
+
+hydra:
+  job:
+    chdir: true
+
+defaults:
+  - override hydra/launcher: joblib
+  # https://hydra.cc/docs/plugins/joblib_launcher/
