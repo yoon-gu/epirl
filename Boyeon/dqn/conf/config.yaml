@@ -1,17 +1,28 @@
 beta: 0.002
 gamma: 0.5
-tf: 30
+tf: 300
 S0: 990
 I0: 10
+
+control: 3
+
+Q: 1000000
+R: 1000000
+W: 1000000
+
+nu_max: 0.01
+tau_max: 0.05
+sigma_max: 0.01
+action_dim: 3
 
 n_episodes: 2000
 eps_start: 1.0
 eps_end: 0.001
 eps_decay: 0.995
 
-nu_max: 0.01
-tau_max: 0.05
-
 hydra:
   job:
     chdir: true
+
+defaults:
+  - override hydra/launcher: joblib
