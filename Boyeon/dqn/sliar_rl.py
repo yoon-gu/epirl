@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 from dqn_agent import Agent
 from omegaconf import DictConfig, OmegaConf
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 # nu: vaccine, tau: treatment, sigma: social distancing
 # action_size : 2 (1 control)
@@ -16,7 +18,6 @@ from omegaconf import DictConfig, OmegaConf
 # action_size : 8 (3 control)
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(conf : DictConfig) -> None:   
-    ACTIONS = [(0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (1, 0, 1), (0, 1, 1), (1, 1, 1)]
     if conf.control == 11:
         # nu
         ACTIONS = [(0, 0, 0), (1, 0, 0)]
@@ -230,7 +231,7 @@ def main(conf : DictConfig) -> None:
     plt.plot(range(max_t), sigma_, '.-r', label = 'Social Distancing')
     plt.grid()
     plt.legend()
-    plt.title('Vaccine Control('+ str(cost)+')')
+    plt.title('Control('+ str(cost)+')')
     plt.xlabel('day')
     plt.savefig('SLIAR_control_u.png', dpi=300)
     plt.show(block=False)
