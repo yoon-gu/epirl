@@ -1,5 +1,5 @@
 import random
-import wandb
+# import wandb
 import hydra
 import torch
 import numpy as np
@@ -15,7 +15,7 @@ npath = os.getcwd()
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(conf: DictConfig) -> None:
-    run = wandb.init(project='SIR+DQN2', job_type='Train an agent')
+    # run = wandb.init(project='SIR+DQN2', job_type='Train an agent')
 
     def sir(y, t, beta, gamma, u):
         S, I = y
@@ -43,7 +43,7 @@ def main(conf: DictConfig) -> None:
             S0, I0 = self.state
             S, I = new_state
             self.state = new_state
-            reward = - I - action*2
+            reward = - I - action*500
             done = True if new_state[1] < 1.0 else False
             return (new_state, reward, done, 0)
         
@@ -95,7 +95,7 @@ def main(conf: DictConfig) -> None:
     # Set y-axes titles
     fig.update_yaxes(title_text="Population", secondary_y=False)
     fig.update_yaxes(title_text="Vaccine", secondary_y=True)
-    wandb.log({"SIR without vaccine": fig})
+    # wandb.log({"SIR without vaccine": fig})
     fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/SIR_wo_vac.png")
     
     env = SirEnvironment()
@@ -134,7 +134,7 @@ def main(conf: DictConfig) -> None:
     fig.update_layout(title_text='Value')
     fig.update_xaxes(title_text='S')
     fig.update_yaxes(title_text='I')
-    wandb.log({"Value (initial)": fig})
+    # wandb.log({"Value (initial)": fig})
     fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/value_initial.png")
     
     fig = go.Figure(data =
@@ -146,7 +146,7 @@ def main(conf: DictConfig) -> None:
     fig.update_layout(title_text='Action')
     fig.update_xaxes(title_text='S')
     fig.update_yaxes(title_text='I')
-    wandb.log({"Action (initial)": fig})
+    # wandb.log({"Action (initial)": fig})
     fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/action_initial.png")
     
 
@@ -191,7 +191,7 @@ def main(conf: DictConfig) -> None:
     # Set y-axes titles
     fig.update_yaxes(title_text="Population", secondary_y=False)
     fig.update_yaxes(title_text="Vaccine", secondary_y=True)
-    wandb.log({"SIR with full vaccine": fig})
+    # wandb.log({"SIR with full vaccine": fig})
     fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/SIR_w_fvac.png")
 
 
@@ -229,7 +229,7 @@ def main(conf: DictConfig) -> None:
                 if done:
                     break
                 
-            run.log({'Reward': score, 'eps': eps, 'episode': i_episode})
+            # run.log({'Reward': score, 'eps': eps, 'episode': i_episode})
             scores_window.append(score)       # save most recent score
             scores.append(score)              # save most recent score
             eps = max(eps_end, eps_decay*eps) # decrease epsilon
@@ -264,7 +264,7 @@ def main(conf: DictConfig) -> None:
         actions2 = []
         for t in range(max_t):
             action2 = agent.act(state2, eps=0.0)
-            run.log({'Vaccine': action2, 't':t})
+            # run.log({'Vaccine': action2, 't':t})
             actions2 = np.append(actions2, action2)
             next_state2, reward2, done, _ = env2.step(action2)
             reward_sum2 += reward2
@@ -300,7 +300,7 @@ def main(conf: DictConfig) -> None:
         fig.update_yaxes(title_text="Population", secondary_y=False)
         fig.update_yaxes(title_text="Vaccine", secondary_y=True)
 
-        wandb.log({f"SIR with vaccine{j*n_episodes}": fig})
+        # wandb.log({f"SIR with vaccine{j*n_episodes}": fig})
         fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/SIR_w_vac_{j*n_episodes}.png")
         
         S = np.linspace(0, 10000, 101)
@@ -337,7 +337,7 @@ def main(conf: DictConfig) -> None:
         fig3.update_layout(title_text='Value')
         fig3.update_xaxes(title_text='S')
         fig3.update_yaxes(title_text='I')
-        wandb.log({f"Value {n_episodes*j}": fig3})
+        # wandb.log({f"Value {n_episodes*j}": fig3})
         fig3.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/value_{n_episodes*j}.png")
         
         
@@ -350,13 +350,13 @@ def main(conf: DictConfig) -> None:
         fig3.update_layout(title_text='Action')
         fig3.update_xaxes(title_text='S')
         fig3.update_yaxes(title_text='I')
-        wandb.log({f"Action {n_episodes*j}": fig3})
+        # wandb.log({f"Action {n_episodes*j}": fig3})
         fig3.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/action_{n_episodes*j}.png")
         
         
-    run.summary.update(conf)
-    run.summary['Final_Reward'] = reward_sum
-    wandb.finish()
+    # run.summary.update(conf)
+    # run.summary['Final_Reward'] = reward_sum
+    # wandb.finish()
 
 if __name__ == '__main__':
     main()
