@@ -28,6 +28,7 @@ def main(conf: DictConfig) -> None:
             self.beta = conf.beta
             self.gamma = conf.gamma
             self.nu = conf.nu
+            self.w_action = conf.w_action
 
         def reset(self, S0=conf.S0, I0=conf.I0):
             self.state = np.array([S0, I0])
@@ -43,7 +44,7 @@ def main(conf: DictConfig) -> None:
             S0, I0 = self.state
             S, I = new_state
             self.state = new_state
-            reward = - I - action*500
+            reward = - I - action*self.w_action
             done = True if new_state[1] < 1.0 else False
             return (new_state, reward, done, 0)
         
