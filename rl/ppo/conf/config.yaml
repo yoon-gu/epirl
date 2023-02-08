@@ -1,0 +1,11 @@
+beta: 0.002
+gamma: 0.5
+tf: 30
+S0: 990
+I0: 10
+
+n_episodes: 100000
+
+hydra:
+  job:
+    chdir: true
