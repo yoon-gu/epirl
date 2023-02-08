@@ -7,56 +7,51 @@ import numpy as np
 from stable_baselines3.common.env_checker import check_env
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from omegaconf import DictConfig, OmegaConf
 
-beta= 0.002
-gamma= 0.5
-tf= 30
-S0= 990
-I0= 10
+@hydra.main(version_base=None, config_path="conf", config_name="config")
+def main(conf: DictConfig):
 
-n_episodes= 2000
-eps_start= 1.0
-eps_end= 0.001
-eps_decay= 0.995
+    beta= conf.beta
+    gamma= conf.gamma
+    tf= conf.tf
+    S0= conf.S0
+    I0= conf.I0
 
+    def sir(y, t, beta, gamma, u):
+        S, I = y
+        dydt = np.array([-beta * S * I - u * S, beta * S * I - gamma * I])
+        return dydt
 
-def sir(y, t, beta, gamma, u):
-    S, I = y
-    dydt = np.array([-beta * S * I - u * S, beta * S * I - gamma * I])
-    return dydt
+    class SirEnvironment(gym.Env):
+        def __init__(self, S0=S0, I0=I0):
+            self.state = np.array([S0, I0])
+            self.beta = beta
+            self.gamma = gamma
+            self.observation_space = gym.spaces.Box(low=np.array([0.0, 0.0]), high=np.array([1000.0, 1000.0]), dtype=np.float32)
+            self.action_space = gym.spaces.Box(low=np.array([0.0]), high=np.array([1.0]), dtype=np.float32)
 
-class SirEnvironment(gym.Env):
-    def __init__(self, S0=S0, I0=I0):
-        self.state = np.array([S0, I0])
-        self.beta = beta
-        self.gamma = gamma
-        self.observation_space = gym.spaces.Box(low=np.array([0.0, 0.0]), high=np.array([1000.0, 1000.0]), dtype=np.float32)
-        self.action_space = gym.spaces.Box(low=np.array([0.0]), high=np.array([1.0]), dtype=np.float32)
+        def reset(self, S0=S0, I0=I0):
+            self.state = np.array([S0, I0])
+            self.beta = beta
+            self.gamma = gamma
+            return np.array(self.state, dtype=np.float32)
 
-    def reset(self, S0=S0, I0=I0):
-        self.state = np.array([S0, I0])
-        self.beta = beta
-        self.gamma = gamma
-        return np.array(self.state, dtype=np.float32)
-
-    def step(self, action):
-        sol = odeint(sir, self.state, np.linspace(0, 1, 101), args=(self.beta, self.gamma, action[0]))
-        new_state = sol[-1, :]
-        S0, I0 = self.state
-        S, I = new_state
-        self.state = new_state
-        reward = - I - 10*action[0]
-        done = True if new_state[1] < 1.0 else False
-        return (np.array(new_state, dtype=np.float32), reward, done, {})
+        def step(self, action):
+            sol = odeint(sir, self.state, np.linspace(0, 1, 101), args=(self.beta, self.gamma, action[0]))
+            new_state = sol[-1, :]
+            S0, I0 = self.state
+            S, I = new_state
+            self.state = new_state
+            reward = - I - 10*action[0]
+            done = True if new_state[1] < 1.0 else False
+            return (np.array(new_state, dtype=np.float32), reward, done, {})
 
 
-if __name__ == '__main__':
-    env = SirEnvironment()
-    check_env(env)
     env = SirEnvironment()
     check_env(env)
     model = PPO("MlpPolicy", env, verbose=1)
-    model.learn(total_timesteps=100000)
+    model.learn(total_timesteps=conf.n_episodes)
     model.save("sir_ppo")
 
     # Visualize Controlled SIR Dynamics
@@ -102,3 +97,6 @@ if __name__ == '__main__':
     fig.update_yaxes(title_text="Population", secondary_y=False)
     fig.update_yaxes(title_text="Vaccine", secondary_y=True)
     fig.show()
+
+if __name__ == '__main__':
+    main()
