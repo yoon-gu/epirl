@@ -17,7 +17,7 @@ os.environ['KMP_DUPLICATE_LIB_OK']='True'
 # action_size : 4 (2 control)
 # action_size : 8 (3 control)
 @hydra.main(version_base=None, config_path="conf", config_name="config")
-def main(conf : DictConfig) -> None:   
+def main(conf : DictConfig) -> None:
     if conf.control == 11:
         # nu
         ACTIONS = [(0, 0, 0), (1, 0, 0)]
@@ -201,7 +201,7 @@ def main(conf : DictConfig) -> None:
         next_state, reward, done, _ = env.step(action)
         states = np.vstack((states, next_state))
         state = next_state
-    
+
     nu_, tau_, sigma_ = np.hsplit(ACTIONSS, conf.action_dim)
     cost1 = np.sum(states[:, 2])
     cost2 = np.sum((conf.nu_max * nu_) ** 2)
