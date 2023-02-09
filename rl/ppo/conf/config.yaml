@@ -1,0 +1,13 @@
+beta: 0.002
+gamma: 0.5
+tf: 30
+S0: 990
+I0: 10
+v_min: 0.0
+v_max: 1.0
+
+n_steps: 100000
+
+hydra:
+  job:
+    chdir: true
