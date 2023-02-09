@@ -1,13 +1,17 @@
 import gym
-from stable_baselines3 import PPO, DQN, A2C, SAC, DDPG
-from stable_baselines3.common.env_util import make_vec_env
+import os
 import hydra
-from scipy.integrate import odeint
+import torch
 import numpy as np
-from stable_baselines3.common.env_checker import check_env
 import plotly.graph_objects as go
+from scipy.integrate import odeint
 from plotly.subplots import make_subplots
 from omegaconf import DictConfig, OmegaConf
+from stable_baselines3 import PPO, DQN, A2C, SAC, DDPG
+from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.evaluation import evaluate_policy
+from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.env_checker import check_env
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(conf: DictConfig):
@@ -17,6 +21,8 @@ def main(conf: DictConfig):
     tf= conf.tf
     S0= conf.S0
     I0= conf.I0
+    v_min = conf.v_min
+    v_max = conf.v_max
 
     def sir(y, t, beta, gamma, u):
         S, I = y
@@ -24,12 +30,14 @@ def main(conf: DictConfig):
         return dydt
 
     class SirEnvironment(gym.Env):
-        def __init__(self, S0=S0, I0=I0):
+        def __init__(self, S0=S0, I0=I0, beta=beta, gamma=gamma, v_min=v_min, v_max=v_max):
             self.state = np.array([S0, I0])
             self.beta = beta
             self.gamma = gamma
+            self.v_min = v_min
+            self.v_max = v_max
             self.observation_space = gym.spaces.Box(low=np.array([0.0, 0.0]), high=np.array([1000.0, 1000.0]), dtype=np.float32)
-            self.action_space = gym.spaces.Box(low=np.array([0.0]), high=np.array([1.0]), dtype=np.float32)
+            self.action_space = gym.spaces.Box(low=np.array([-1.0]), high=np.array([1.0]), dtype=np.float32)
 
         def reset(self, S0=S0, I0=I0):
             self.state = np.array([S0, I0])
@@ -38,21 +46,36 @@ def main(conf: DictConfig):
             return np.array(self.state, dtype=np.float32)
 
         def step(self, action):
-            sol = odeint(sir, self.state, np.linspace(0, 1, 101), args=(self.beta, self.gamma, action[0]))
+            vaccine = self.v_min + self.v_max * (action[0] + 1.0) / 2.0
+            sol = odeint(sir, self.state, np.linspace(0, 1, 101), args=(self.beta, self.gamma, vaccine))
             new_state = sol[-1, :]
             S0, I0 = self.state
             S, I = new_state
             self.state = new_state
-            reward = - I - 10*action[0]
+            reward = - I - 10*vaccine
             done = True if new_state[1] < 1.0 else False
             return (np.array(new_state, dtype=np.float32), reward, done, {})
 
 
     env = SirEnvironment()
     check_env(env)
-    model = PPO("MlpPolicy", env, verbose=1)
-    model.learn(total_timesteps=conf.n_episodes)
+    log_dir = "./sir_ppo_log"
+    os.makedirs(log_dir, exist_ok=True)
+    env = Monitor(env, log_dir)
+    policy_kwargs = dict(
+                            # activation_fn=torch.nn.ReLU,
+                            # net_arch=[32, 32]
+                        )
+    model = PPO("MlpPolicy", env, verbose=0, policy_kwargs=policy_kwargs)
+    mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=100)
+    print("Before")
+    print(f"mean_reward:{mean_reward:,.2f} +/- {std_reward:.2f}")
+
+    model.learn(total_timesteps=conf.n_steps)
     model.save("sir_ppo")
+    mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=100)
+    print("After")
+    print(f"mean_reward:{mean_reward:,.2f} +/- {std_reward:.2f}")
 
     # Visualize Controlled SIR Dynamics
     env = SirEnvironment()
@@ -63,7 +86,7 @@ def main(conf: DictConfig):
     actions = []
     for t in range(max_t):
         action, _states = model.predict(state)
-        actions = np.append(actions, action[0])
+        actions = np.append(actions, v_min + v_max * (1.0 + action[0]) / 2.0)
         next_state, reward, done, _ = env.step(action)
         reward_sum += reward
         states = np.vstack((states, next_state))
