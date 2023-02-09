@@ -1,5 +1,5 @@
 import random
-import wandb
+# import wandb
 import hydra
 import torch
 import numpy as np
@@ -13,9 +13,10 @@ import os
 
 npath = os.getcwd()
 
+
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(conf: DictConfig) -> None:
-    run = wandb.init(project='SIR+DQN2', job_type='Train an agent')
+    # run = wandb.init(project='SIR+DQN2', job_type='Train an agent')
 
     def sir(y, t, beta, gamma, u):
         S, I = y
@@ -28,6 +29,7 @@ def main(conf: DictConfig) -> None:
             self.beta = conf.beta
             self.gamma = conf.gamma
             self.nu = conf.nu
+            self.w_action = conf.w_action
 
         def reset(self, S0=conf.S0, I0=conf.I0):
             self.state = np.array([S0, I0])
@@ -43,7 +45,7 @@ def main(conf: DictConfig) -> None:
             S0, I0 = self.state
             S, I = new_state
             self.state = new_state
-            reward = - I - action*2
+            reward = - I - action*self.w_action
             done = True if new_state[1] < 1.0 else False
             return (new_state, reward, done, 0)
         
@@ -69,85 +71,85 @@ def main(conf: DictConfig) -> None:
         actions.append(action)
         state = next_state
 
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    # Add traces
-    fig.add_trace(
-        go.Scatter(x=list(range(max_t+1)), y=states[:,0].flatten(), name="susceptible",
-            mode='lines+markers'),
-        secondary_y=False,
-    )
-    fig.add_trace(
-        go.Scatter(x=list(range(max_t+1)), y=states[:,1].flatten(), name="infected",
-            mode='lines+markers'),
-        secondary_y=False,
-    )
-    fig.add_trace(
-        go.Scatter(x=list(range(max_t+1)), y=actions, name="vaccine",
-            mode='lines+markers'),
-        secondary_y=True,
-    )
-    # Add figure title
-    fig.update_layout(
-        title_text=f'{reward_sum:.2f}: SIR model without control'
-    )
-    # Set x-axis title
-    fig.update_xaxes(title_text="day")
-    # Set y-axes titles
-    fig.update_yaxes(title_text="Population", secondary_y=False)
-    fig.update_yaxes(title_text="Vaccine", secondary_y=True)
-    wandb.log({"SIR without vaccine": fig})
-    fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/SIR_wo_vac.png")
+    # fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # # Add traces
+    # fig.add_trace(
+    #     go.Scatter(x=list(range(max_t+1)), y=states[:,0].flatten(), name="susceptible",
+    #         mode='lines+markers'),
+    #     secondary_y=False,
+    # )
+    # fig.add_trace(
+    #     go.Scatter(x=list(range(max_t+1)), y=states[:,1].flatten(), name="infected",
+    #         mode='lines+markers'),
+    #     secondary_y=False,
+    # )
+    # fig.add_trace(
+    #     go.Scatter(x=list(range(max_t+1)), y=actions, name="vaccine",
+    #         mode='lines+markers'),
+    #     secondary_y=True,
+    # )
+    # # Add figure title
+    # fig.update_layout(
+    #     title_text=f'{reward_sum:.2f}: SIR model without control'
+    # )
+    # # Set x-axis title
+    # fig.update_xaxes(title_text="day")
+    # # Set y-axes titles
+    # fig.update_yaxes(title_text="Population", secondary_y=False)
+    # fig.update_yaxes(title_text="Vaccine", secondary_y=True)
+    # # wandb.log({"SIR without vaccine": fig})
+    # fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{str(conf.beta)[-2:]}/SIR_wo_vac.png")
     
-    env = SirEnvironment()
-    state = env.reset()
-    agent = Agent(state_size=2, action_size=2, seed=0)
+    # env = SirEnvironment()
+    # state = env.reset()
+    # agent = Agent(state_size=2, action_size=2, seed=0)
     
-    # triangle plot
-    S = np.linspace(0, 10000, 101)
-    I = np.linspace(0, 10000, 101)
+    # # triangle plot
+    # S = np.linspace(0, 10000, 101)
+    # I = np.linspace(0, 10000, 101)
 
-    SS, II = np.meshgrid(S, I)
+    # SS, II = np.meshgrid(S, I)
 
-    vf = np.zeros((len(I), len(S)))
-    af = np.zeros((len(I), len(S)))
+    # vf = np.zeros((len(I), len(S)))
+    # af = np.zeros((len(I), len(S)))
 
-    for si, s in enumerate(S):
-        for ii, i in enumerate(I):
-            v = agent.qnetwork_local.forward(torch.tensor([float(s), float(i)]).to(device))
-            v = v.detach().cpu().numpy()
-            vf[si, ii] = np.max(v)
-            af[si, ii] = np.argmax(v)
+    # for si, s in enumerate(S):
+    #     for ii, i in enumerate(I):
+    #         v = agent.qnetwork_local.forward(torch.tensor([float(s), float(i)]).to(device))
+    #         v = v.detach().cpu().numpy()
+    #         vf[si, ii] = np.max(v)
+    #         af[si, ii] = np.argmax(v)
 
-    vf[SS + II > 10000] = None
-    af[SS + II > 10000] = None
+    # vf[SS + II > 10000] = None
+    # af[SS + II > 10000] = None
     
-    fig = go.Figure(data =
-    [go.Contour(
-        z=-vf,
-        x=S,
-        y=I),
-    go.Scatter(mode='markers',
-               x=states[:,0],
-               y=states[:,1],
-               marker=dict(color='rgba(230, 240, 255, 0.5)',
-                           size=8))])
-    fig.update_layout(title_text='Value')
-    fig.update_xaxes(title_text='S')
-    fig.update_yaxes(title_text='I')
-    wandb.log({"Value (initial)": fig})
-    fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/value_initial.png")
+    # fig = go.Figure(data =
+    # [go.Contour(
+    #     z=-vf,
+    #     x=S,
+    #     y=I),
+    # go.Scatter(mode='markers',
+    #            x=states[:,0],
+    #            y=states[:,1],
+    #            marker=dict(color='rgba(230, 240, 255, 0.5)',
+    #                        size=8))])
+    # fig.update_layout(title_text='Value')
+    # fig.update_xaxes(title_text='S')
+    # fig.update_yaxes(title_text='I')
+    # # wandb.log({"Value (initial)": fig})
+    # fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{str(conf.beta)[-2:]}/value_initial.png")
     
-    fig = go.Figure(data =
-    go.Contour(
-        z=af,
-        x=S,
-        y=I
-    ))
-    fig.update_layout(title_text='Action')
-    fig.update_xaxes(title_text='S')
-    fig.update_yaxes(title_text='I')
-    wandb.log({"Action (initial)": fig})
-    fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/action_initial.png")
+    # fig = go.Figure(data =
+    # go.Contour(
+    #     z=af,
+    #     x=S,
+    #     y=I
+    # ))
+    # fig.update_layout(title_text='Action')
+    # fig.update_xaxes(title_text='S')
+    # fig.update_yaxes(title_text='I')
+    # # wandb.log({"Action (initial)": fig})
+    # fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{str(conf.beta)[-2:]}/action_initial.png")
     
 
     # 1-2. With Full Control
@@ -165,36 +167,40 @@ def main(conf: DictConfig) -> None:
         states = np.vstack((states, next_state))
         state = next_state
 
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    # Add traces
-    fig.add_trace(
-        go.Scatter(x=list(range(max_t+1)), y=states[:,0].flatten(), name="susceptible",
-            mode='lines+markers'),
-        secondary_y=False,
-    )
-    fig.add_trace(
-        go.Scatter(x=list(range(max_t+1)), y=states[:,1].flatten(), name="infected",
-            mode='lines+markers'),
-        secondary_y=False,
-    )
-    fig.add_trace(
-        go.Scatter(x=list(range(max_t+1)), y=actions, name="vaccine",
-            mode='lines+markers'),
-        secondary_y=True,
-    )
-    # Add figure title
-    fig.update_layout(
-        title_text=f'{reward_sum:.2f}: SIR model with full control'
-    )
-    # Set x-axis title
-    fig.update_xaxes(title_text="day")
-    # Set y-axes titles
-    fig.update_yaxes(title_text="Population", secondary_y=False)
-    fig.update_yaxes(title_text="Vaccine", secondary_y=True)
-    wandb.log({"SIR with full vaccine": fig})
-    fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/SIR_w_fvac.png")
+    # fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # # Add traces
+    # fig.add_trace(
+    #     go.Scatter(x=list(range(max_t+1)), y=states[:,0].flatten(), name="susceptible",
+    #         mode='lines+markers'),
+    #     secondary_y=False,
+    # )
+    # fig.add_trace(
+    #     go.Scatter(x=list(range(max_t+1)), y=states[:,1].flatten(), name="infected",
+    #         mode='lines+markers'),
+    #     secondary_y=False,
+    # )
+    # fig.add_trace(
+    #     go.Scatter(x=list(range(max_t+1)), y=actions, name="vaccine",
+    #         mode='lines+markers'),
+    #     secondary_y=True,
+    # )
+    # # Add figure title
+    # fig.update_layout(
+    #     title_text=f'{reward_sum:.2f}: SIR model with full control'
+    # )
+    # # Set x-axis title
+    # fig.update_xaxes(title_text="day")
+    # # Set y-axes titles
+    # fig.update_yaxes(title_text="Population", secondary_y=False)
+    # fig.update_yaxes(title_text="Vaccine", secondary_y=True)
+    # # wandb.log({"SIR with full vaccine": fig})
+    # fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{str(conf.beta)[-2:]}/SIR_w_fvac.png")
 
 
+    # make dir
+    os.makedirs(f'{npath}/images/nu{int(conf.nu*100)}beta{str(conf.beta)[-2:]}', exist_ok=True)
+    
+    
     # 2. Train DQN Agent
     env = SirEnvironment()
     agent = Agent(state_size=states.shape[1], action_size=2, seed=0)
@@ -229,7 +235,7 @@ def main(conf: DictConfig) -> None:
                 if done:
                     break
                 
-            run.log({'Reward': score, 'eps': eps, 'episode': i_episode})
+            # run.log({'Reward': score, 'eps': eps, 'episode': i_episode})
             scores_window.append(score)       # save most recent score
             scores.append(score)              # save most recent score
             eps = max(eps_end, eps_decay*eps) # decrease epsilon
@@ -252,7 +258,8 @@ def main(conf: DictConfig) -> None:
         fig2.update_layout(title_text='Score')
         fig2.update_xaxes(title_text='number of episodes')
         fig2.update_yaxes(title_text='score')
-        fig2.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/Score_{j*n_episodes}.png")
+        fig2.update_yaxes(range=[-22500, 0])
+        fig2.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{str(conf.beta)[-2:]}/Score_{j*n_episodes}.png")
 
         # 3. Visualize Controlled SIR Dynamics
         agent.qnetwork_local.load_state_dict(torch.load('checkpoint.pth'))
@@ -264,7 +271,7 @@ def main(conf: DictConfig) -> None:
         actions2 = []
         for t in range(max_t):
             action2 = agent.act(state2, eps=0.0)
-            run.log({'Vaccine': action2, 't':t})
+            # run.log({'Vaccine': action2, 't':t})
             actions2 = np.append(actions2, action2)
             next_state2, reward2, done, _ = env2.step(action2)
             reward_sum2 += reward2
@@ -299,64 +306,93 @@ def main(conf: DictConfig) -> None:
         # Set y-axes titles
         fig.update_yaxes(title_text="Population", secondary_y=False)
         fig.update_yaxes(title_text="Vaccine", secondary_y=True)
+        fig.update_yaxes(range = [-0.1, 1.1], secondary_y=True)
 
-        wandb.log({f"SIR with vaccine{j*n_episodes}": fig})
-        fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/SIR_w_vac_{j*n_episodes}.png")
+        # wandb.log({f"SIR with vaccine{j*n_episodes}": fig})
+        fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{str(conf.beta)[-2:]}/SIR_w_vac_{j*n_episodes}.png")
         
-        S = np.linspace(0, 10000, 101)
-        I = np.linspace(0, 10000, 101)
+        # fig2
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig.add_trace(
+            go.Scatter(x=list(range(max_t+1)), y=states2[:,1].flatten(), name="infected",
+                mode='lines+markers'),
+            secondary_y=False,
+        )
+        fig.add_trace(
+            go.Scatter(x=list(range(max_t+1)), y=actions2, name="vaccine",
+                mode='lines+markers'),
+            secondary_y=True,
+        )
+        fig.update_layout(
+            title_text=f'{reward_sum2:.2f}: IV'
+        )
+        fig.update_xaxes(title_text="day")
+        fig.update_yaxes(title_text="Population", secondary_y=False)
+        fig.update_yaxes(title_text="Vaccine", secondary_y=True)
+        if max(states2[:,1])<111:
+            fig.update_yaxes(range = [-10, 110], secondary_y=False)
+        fig.update_yaxes(range = [-0.1, 1.1], secondary_y=True)
 
-        SS, II = np.meshgrid(S, I)
+        # wandb.log({f"SIR with vaccine{j*n_episodes}": fig})
+        fig.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{str(conf.beta)[-2:]}/IV_w_vac_{j*n_episodes}.png")
+        
+        
+        
+        
+        # S = np.linspace(0, 10000, 101)
+        # I = np.linspace(0, 10000, 101)
 
-        vf = np.zeros((len(I), len(S)))
-        af = np.zeros((len(I), len(S)))
+        # SS, II = np.meshgrid(S, I)
 
-        for si, s in enumerate(S):
-            for ii, i in enumerate(I):
-                v = agent.qnetwork_local.forward(torch.tensor([float(s), float(i)]).to(device))
-                v = v.detach().cpu().numpy()
-                vf[si, ii] = np.max(v)
-                af[si, ii] = np.argmax(v)
+        # vf = np.zeros((len(I), len(S)))
+        # af = np.zeros((len(I), len(S)))
 
-        vf[SS + II > 10000] = None
-        af[SS + II > 10000] = None
+        # for si, s in enumerate(S):
+        #     for ii, i in enumerate(I):
+        #         v = agent.qnetwork_local.forward(torch.tensor([float(s), float(i)]).to(device))
+        #         v = v.detach().cpu().numpy()
+        #         vf[si, ii] = np.max(v)
+        #         af[si, ii] = np.argmax(v)
+
+        # vf[SS + II > 10000] = None
+        # af[SS + II > 10000] = None
         
-        fig3 = go.Figure(data =
-                        [go.Contour(
-                            z=-vf,
-                            x=S,
-                            y=I
-                            ),
-                         go.Scatter(
-                            mode='markers',
-                            x=states2[:,0],
-                            y=states2[:,1],
-                            marker=dict(color='rgba(230, 240, 255, 0.5)',
-                                        size=8))]
-                        )
-        fig3.update_layout(title_text='Value')
-        fig3.update_xaxes(title_text='S')
-        fig3.update_yaxes(title_text='I')
-        wandb.log({f"Value {n_episodes*j}": fig3})
-        fig3.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/value_{n_episodes*j}.png")
-        
-        
-        fig3 = go.Figure(data =
-                        go.Contour(
-                            z=af,
-                            x=S,
-                            y=I
-                            ))
-        fig3.update_layout(title_text='Action')
-        fig3.update_xaxes(title_text='S')
-        fig3.update_yaxes(title_text='I')
-        wandb.log({f"Action {n_episodes*j}": fig3})
-        fig3.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{int(conf.beta*100000)}/action_{n_episodes*j}.png")
+        # fig3 = go.Figure(data =
+        #                 [go.Contour(
+        #                     z=-vf,
+        #                     x=S,
+        #                     y=I
+        #                     ),
+        #                  go.Scatter(
+        #                     mode='markers',
+        #                     x=states2[:,0],
+        #                     y=states2[:,1],
+        #                     marker=dict(color='rgba(230, 240, 255, 0.5)',
+        #                                 size=8))]
+        #                 )
+        # fig3.update_layout(title_text='Value')
+        # fig3.update_xaxes(title_text='S')
+        # fig3.update_yaxes(title_text='I')
+        # # wandb.log({f"Value {n_episodes*j}": fig3})
+        # fig3.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{str(conf.beta)[-2:]}/value_{n_episodes*j}.png")
         
         
-    run.summary.update(conf)
-    run.summary['Final_Reward'] = reward_sum
-    wandb.finish()
+        # fig3 = go.Figure(data =
+        #                 go.Contour(
+        #                     z=af,
+        #                     x=S,
+        #                     y=I
+        #                     ))
+        # fig3.update_layout(title_text='Action')
+        # fig3.update_xaxes(title_text='S')
+        # fig3.update_yaxes(title_text='I')
+        # # wandb.log({f"Action {n_episodes*j}": fig3})
+        # fig3.write_image(f"{npath}/images/nu{int(conf.nu*100)}beta{str(conf.beta)[-2:]}/action_{n_episodes*j}.png")
+        
+        
+    # run.summary.update(conf)
+    # run.summary['Final_Reward'] = reward_sum
+    # wandb.finish()
 
 if __name__ == '__main__':
     main()
