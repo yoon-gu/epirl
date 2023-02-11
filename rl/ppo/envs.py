@@ -14,7 +14,8 @@ class SirEnvironment(gym.Env):
     v_max: float
     S0: float
     I0: float
-    def __init__(self, S0, I0, beta, gamma, v_min, v_max):
+    tf: float
+    def __init__(self, S0, I0, beta, gamma, v_min, v_max, tf):
         self.state = np.array([S0, I0])
         self.beta = beta
         self.gamma = gamma
@@ -22,6 +23,7 @@ class SirEnvironment(gym.Env):
         self.v_max = v_max
         self.S0 = S0
         self.I0 = I0
+        self.tf = tf
         self.observation_space = gym.spaces.Box(
                     low=np.array([0.0, 0.0], dtype=np.float32),
                     high=np.array([1000.0, 1000.0], dtype=np.float32),
@@ -43,5 +45,5 @@ class SirEnvironment(gym.Env):
         S, I = new_state
         self.state = new_state
         reward = - I - 10*vaccine
-        done = True if I < 1.0 else False
+        done = True if I < 1.0E-6 else False
         return (np.array(new_state, dtype=np.float32), reward, done, {})

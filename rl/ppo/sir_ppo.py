@@ -11,33 +11,54 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.callbacks import (
+    CallbackList,
+    CheckpointCallback,
+    EvalCallback,
+    EveryNTimesteps,
+    StopTrainingOnMaxEpisodes,
+    StopTrainingOnNoModelImprovement,
+    StopTrainingOnRewardThreshold,
+)
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(conf: DictConfig):
-    env = instantiate(conf.sir)
-    check_env(env)
+    train_env = instantiate(conf.sir)
+    check_env(train_env)
     log_dir = "./sir_ppo_log"
     os.makedirs(log_dir, exist_ok=True)
-    env = Monitor(env, log_dir)
+    train_env = Monitor(train_env, log_dir)
     policy_kwargs = dict(
                             # activation_fn=torch.nn.ReLU,
                             # net_arch=[32, 32]
                         )
-    model = PPO("MlpPolicy", env, verbose=0, policy_kwargs=policy_kwargs)
-    mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=100)
+    model = PPO("MlpPolicy", train_env, verbose=0,
+                policy_kwargs=policy_kwargs)
+    mean_reward, std_reward = evaluate_policy(model, train_env, n_eval_episodes=100)
     print("Before:")
     print(f"\tmean_reward:{mean_reward:,.2f} +/- {std_reward:.2f}")
 
-    model.learn(total_timesteps=conf.n_steps)
+    eval_env = instantiate(conf.sir)
+    eval_callback = EvalCallback(
+            eval_env,
+            eval_freq=5000,
+            warn=False,
+            log_path='eval_log',
+            best_model_save_path='best_model'
+        )
+    checkpoint_callback = CheckpointCallback(save_freq=1000, save_path='./checkpoints/',
+                                             name_prefix='rl_model')
+    callback = CallbackList([checkpoint_callback, eval_callback])
+
+    model.learn(total_timesteps=conf.n_steps, callback=callback)
     model.save("sir_ppo")
-    mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=100)
+    mean_reward, std_reward = evaluate_policy(model, train_env, n_eval_episodes=100)
     print("After:")
     print(f"\tmean_reward:{mean_reward:,.2f} +/- {std_reward:.2f}")
 
     # Visualize Controlled SIR Dynamics
-    eval_env = instantiate(conf.sir)
-    state = env.reset()
-    max_t = conf.tf
+    state = eval_env.reset()
+    max_t = conf.sir.tf
     states = state
     reward_sum = 0.
     actions = []

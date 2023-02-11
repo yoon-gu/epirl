@@ -6,9 +6,9 @@ sir:
   I0: 10
   v_min: 0.0
   v_max: 1.0
+  tf: 30
 
 n_steps: 10000
-tf: 30
 
 hydra:
   job:
