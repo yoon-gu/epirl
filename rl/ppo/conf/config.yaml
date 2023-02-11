@@ -1,12 +1,14 @@
-beta: 0.002
-gamma: 0.5
-tf: 30
-S0: 990
-I0: 10
-v_min: 0.0
-v_max: 1.0
+sir:
+  _target_: envs.SirEnvironment
+  beta: 0.002
+  gamma: 0.5
+  S0: 990
+  I0: 10
+  v_min: 0.0
+  v_max: 1.0
 
-n_steps: 100000
+n_steps: 10000
+tf: 30
 
 hydra:
   job:
