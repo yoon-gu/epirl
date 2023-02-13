@@ -1,8 +1,8 @@
 import os
 import hydra
 from hydra.utils import instantiate
-import numpy as np
-import plotly.graph_objects as go
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 from plotly.subplots import make_subplots
 from omegaconf import DictConfig, OmegaConf
@@ -21,6 +21,8 @@ from stable_baselines3.common.callbacks import (
     StopTrainingOnRewardThreshold,
 )
 
+sns.set_theme(style="whitegrid")
+
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(conf: DictConfig):
     train_env = instantiate(conf.sir)
@@ -30,7 +32,7 @@ def main(conf: DictConfig):
     train_env = Monitor(train_env, log_dir)
     policy_kwargs = dict(
                             # activation_fn=torch.nn.ReLU,
-                            # net_arch=[32, 32]
+                            net_arch=[16, 32, 64, 16]
                         )
     model = PPO("MlpPolicy", train_env, verbose=0,
                 policy_kwargs=policy_kwargs)
@@ -58,46 +60,17 @@ def main(conf: DictConfig):
 
     # Visualize Controlled SIR Dynamics
     state = eval_env.reset()
-    max_t = conf.sir.tf
-    states = state
-    reward_sum = 0.
-    actions = []
-    for t in range(max_t):
-        action, _states = model.predict(state)
-        actions = np.append(actions, conf.sir.v_min + conf.sir.v_max * (1.0 + action[0]) / 2.0)
-        next_state, reward, _, _ = eval_env.step(action)
-        reward_sum += reward
-        states = np.vstack((states, next_state))
-        state = next_state
+    for _ in range(conf.sir.tf):
+        action, _ = model.predict(state)
+        state, _, _, _ = eval_env.step(action)
 
-    # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    # Add traces
-    fig.add_trace(
-        go.Scatter(x=list(range(max_t+1)), y=states[:,0].flatten(), name="susceptible",
-            mode='lines+markers'),
-        secondary_y=False,
-    )
-    fig.add_trace(
-        go.Scatter(x=list(range(max_t+1)), y=states[:,1].flatten(), name="infected",
-            mode='lines+markers'),
-        secondary_y=False,
-    )
-    fig.add_trace(
-        go.Scatter(x=list(range(max_t+1)), y=actions, name="vaccine",
-            mode='lines+markers'),
-        secondary_y=True,
-    )
-    # Add figure title
-    fig.update_layout(
-        title_text=f'{reward_sum:.2f}: SIR model with control'
-    )
-    # Set x-axis title
-    fig.update_xaxes(title_text="day")
-    # Set y-axes titles
-    fig.update_yaxes(title_text="Population", secondary_y=False)
-    fig.update_yaxes(title_text="Vaccine", secondary_y=True)
-    fig.show()
+    df = eval_env.dynamics
+    sns.lineplot(data=df, x='days', y='susceptible', marker=".")
+    sns.lineplot(data=df, x='days', y='infected', marker=".")
+    ax2 = plt.twinx()
+    sns.lineplot(data=df, x='days', y='vaccines', ax=ax2, marker="o", color="g")
+    plt.grid()
+    plt.show()
 
 if __name__ == '__main__':
     main()
