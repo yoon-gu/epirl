@@ -2,6 +2,7 @@ import os
 import hydra
 from hydra.utils import instantiate
 import seaborn as sns
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from plotly.subplots import make_subplots
@@ -32,7 +33,7 @@ def main(conf: DictConfig):
     train_env = Monitor(train_env, log_dir)
     policy_kwargs = dict(
                             # activation_fn=torch.nn.ReLU,
-                            net_arch=[16, 32, 64, 16]
+                            # net_arch=[16, 32, 64, 16]
                         )
     model = PPO("MlpPolicy", train_env, verbose=0,
                 policy_kwargs=policy_kwargs)
@@ -70,6 +71,10 @@ def main(conf: DictConfig):
     ax2 = plt.twinx()
     sns.lineplot(data=df, x='days', y='vaccines', ax=ax2, marker="o", color="g")
     plt.grid()
+    plt.show()
+
+    df = pd.read_csv(f"{log_dir}/monitor.csv", skiprows=1)
+    sns.lineplot(data=df.r)
     plt.show()
 
 if __name__ == '__main__':
