@@ -10,6 +10,10 @@ Q: 1000000
 R: 1000000
 W: 1000000
 
+nu_actions: [0,1]
+tau_actions: [0]
+sigma_actions: [0]
+
 nu_max: 0.01
 tau_max: 0.05
 sigma_max: 0.01

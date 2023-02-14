@@ -1,4 +1,6 @@
 # python sliar_rl.py n_episodes=10000 eps_start=0.0
+# hydra list 호출
+# python sliar_rl.py nu_actions="[0,1]" tau_actions="[0,1]"
 
 import random
 import hydra
@@ -11,41 +13,21 @@ from dqn_agent import Agent
 from omegaconf import DictConfig, OmegaConf
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
+from itertools import product
 
 # nu: vaccine, tau: treatment, sigma: social distancing
-# action_size : 2 (1 control)
-# action_size : 4 (2 control)
-# action_size : 8 (3 control)
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(conf : DictConfig) -> None:
-    if conf.control == 11:
-        # nu
-        ACTIONS = [(0, 0, 0), (1, 0, 0)]
-        action_size = 2
-    elif conf.control == 12:
-        # tau
-        ACTIONS = [(0, 0, 0), (0, 1, 0)]
-        action_size = 2
-    elif conf.control == 13:
-        # sigma
-        ACTIONS = [(0, 0, 0), (0, 0, 1)]
-        action_size = 2
-    elif conf.control == 21:
-        # nu, tau
-        ACTIONS = [(0, 0, 0), (1, 0, 0), (0, 1, 0), (1, 1, 0)]
-        action_size = 4
-    elif conf.control == 22:
-        # nu, sigma
-        ACTIONS = [(0, 0, 0), (1, 0, 0), (0, 0, 1), (1, 0, 1)]
-        action_size = 4
-    elif conf.control == 23:
-        # tau, sigma
-        ACTIONS = [(0, 0, 0), (0, 1, 0), (0, 0, 1), (0, 1, 1)]
-        action_size = 4
-    elif conf.control == 3:
-        # nu, tau, sigma
-        ACTIONS = [(0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (1, 0, 1), (0, 1, 1), (1, 1, 1)]
-        action_size = 8
+    # Control
+    nu_actions = conf.nu_actions
+    tau_actions = conf.tau_actions
+    sigma_actions = conf.sigma_actions
+
+    # Check the actions list
+    ACTIONS = list(product(nu_actions, tau_actions, sigma_actions))
+    print(ACTIONS)
+    action_size = len(ACTIONS)
+    print(f"actions size = {len(ACTIONS)}")
 
     def sliar(y, t, beta, sigma, kappa, alpha, tau, p, eta, epsilon, q, delta, nu):
         S, L, I , A = y
@@ -71,7 +53,6 @@ def main(conf : DictConfig) -> None:
             self.Q = conf.Q
             self.R = conf.R
             self.W = conf.W
-
 
         def reset(self, S0=1000000, L0=0, I0 = 1, A0 = 0):
             self.state = np.array([S0, L0, I0, A0])
@@ -202,6 +183,7 @@ def main(conf : DictConfig) -> None:
         states = np.vstack((states, next_state))
         state = next_state
 
+    ACTIONSS = np.array(ACTIONSS).reshape(max_t, 3)
     nu_, tau_, sigma_ = np.hsplit(ACTIONSS, conf.action_dim)
     cost1 = np.sum(states[:, 2])
     cost2 = np.sum((conf.nu_max * nu_) ** 2)
