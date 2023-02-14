@@ -1,4 +1,6 @@
 # python sliar_rl.py n_episodes=10000 eps_start=0.0
+# hydra list 호출
+# python sliar_rl.py nu_actions="[0,1]" tau_actions="[0,1]"
 
 import random
 import hydra
@@ -9,18 +11,28 @@ import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 from dqn_agent import Agent
 from omegaconf import DictConfig, OmegaConf
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
+from itertools import product
 
-ACTIONS = [(0, 0),
-           (1, 0),
-           (0, 1),
-           (1, 1) ]
-
+# nu: vaccine, tau: treatment, sigma: social distancing
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(conf : DictConfig) -> None:
+    # Control
+    nu_actions = conf.nu_actions
+    tau_actions = conf.tau_actions
+    sigma_actions = conf.sigma_actions
+
+    # Check the actions list
+    ACTIONS = list(product(nu_actions, tau_actions, sigma_actions))
+    print(ACTIONS)
+    action_size = len(ACTIONS)
+    print(f"actions size = {len(ACTIONS)}")
+
     def sliar(y, t, beta, sigma, kappa, alpha, tau, p, eta, epsilon, q, delta, nu):
         S, L, I , A = y
-        dydt = np.array([- beta * (1-sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - conf.nu_max * nu * S,
-                        beta * (1-sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - kappa * L,
+        dydt = np.array([- beta * (1-conf.sigma_max * sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - conf.nu_max * nu * S,
+                        beta * (1-conf.sigma_max * sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - kappa * L,
                         p * kappa * L - alpha * I - conf.tau_max * tau * I,
                         (1 - p) * kappa * L  - eta * A])
         return dydt
@@ -28,10 +40,8 @@ def main(conf : DictConfig) -> None:
     class SliarEnvironment:
         def __init__(self, S0=1000000, L0=0, I0 = 1, A0 = 0):
             self.state = np.array([S0, L0, I0, A0])
-            self.sigma = 0
             self.kappa = 0.526
             self.alpha = 0.244
-            #self.tau = 0
             self.p = 0.667
             self.eta = 0.244
             self.epsilon = 0
@@ -40,17 +50,14 @@ def main(conf : DictConfig) -> None:
             self.R0 = 1.9847
             self.beta = self.R0/(S0 * ((self.epsilon / self.kappa) + ((1 - self.q)*self.p/self.alpha) + (self.delta*(1-self.p)/self.eta)))
             self.P = 1
-            self.Q = 1E6
-            self.R = 1E6
-            self.W = 0
-
+            self.Q = conf.Q
+            self.R = conf.R
+            self.W = conf.W
 
         def reset(self, S0=1000000, L0=0, I0 = 1, A0 = 0):
             self.state = np.array([S0, L0, I0, A0])
-            self.sigma = 0
             self.kappa = 0.526
             self.alpha = 0.244
-            #self.tau = 0
             self.p = 0.667
             self.eta = 0.244
             self.epsilon = 0
@@ -59,21 +66,21 @@ def main(conf : DictConfig) -> None:
             self.R0 = 1.9847
             self.beta = self.R0/(S0 * ((self.epsilon / self.kappa) + ((1 - self.q)*self.p/self.alpha) + (self.delta*(1-self.p)/self.eta)))
             self.P = 1
-            self.Q = 1E6
-            self.R = 1E6
-            self.W = 0
+            self.Q = conf.Q
+            self.R = conf.R
+            self.W = conf.W
             return self.state
 
         def step(self, action):
-            nu, tau = ACTIONS[action]
+            nu, tau, sigma = ACTIONS[action]
             sol = odeint(sliar, self.state, np.linspace(0, 1, 101),
-                        args=(self.beta, self.sigma, self.kappa, self.alpha, tau, self.p, self.eta, self.epsilon, self.q, self.delta, nu))
+                        args=(self.beta, sigma, self.kappa, self.alpha, tau, self.p, self.eta, self.epsilon, self.q, self.delta, nu))
             new_state = sol[-1, :]
             S0, L0, I0, A0 = self.state
             S, L, I, A = new_state
             self.state = new_state
             # cost = PI + Qu^2 // P = 1, Q = 10e-06
-            reward = - self.P * I - self.Q * ((conf.nu_max * nu) ** 2) - self.R * ((conf.tau_max * tau) ** 2)
+            reward = - self.P * I - self.Q * ((conf.nu_max * nu) ** 2) - self.R * ((conf.tau_max * tau) ** 2) - self.W * ((conf.sigma_max * sigma) ** 2)
             done = True if new_state[2] < 1.0 else False
             return (new_state, reward, False, 0)
 
@@ -88,6 +95,7 @@ def main(conf : DictConfig) -> None:
     actions = []
     for t in range(max_t):
         action = 0
+        actions.append(action)
         next_state, reward, done, _ = env.step(action)
         states = np.vstack((states, next_state))
         state = next_state
@@ -103,17 +111,18 @@ def main(conf : DictConfig) -> None:
     ax2.legend(loc='lower right')
     plt.grid()
     plt.legend()
-    plt.title('SLIAR model w/o control')
+    plt.title('SLIAR model without control')
     plt.xlabel('day')
     plt.savefig('SLIAR_wo_control.png', dpi=300)
     plt.show(block=False)
 
+
     # 2. Train DQN Agent
     env = SliarEnvironment()
-    agent = Agent(state_size=4, action_size=4, seed=0)
+    agent = Agent(state_size=4, action_size=action_size, seed=0)
     ## Parameters
     n_episodes=conf.n_episodes
-    max_t=300
+    max_t=conf.tf
     eps_start=conf.eps_start
     eps_end=conf.eps_end
     eps_decay=conf.eps_decay
@@ -175,13 +184,15 @@ def main(conf : DictConfig) -> None:
     max_t = 300
     states = state
     actions = []
+    ACTIONSS = []
     for t in range(max_t):
         action = agent.act(state, eps=0.0)
+        ACTION = ACTIONS[action]
+        ACTIONSS = np.append(ACTIONSS, ACTION)
         actions = np.append(actions, action)
         next_state, reward, done, _ = env.step(action)
         states = np.vstack((states, next_state))
         state = next_state
-
 
     ACTIONSS = np.array(ACTIONSS).reshape(max_t, 3)
     S, L, I, A = np.hsplit(states, 4)
@@ -213,10 +224,12 @@ def main(conf : DictConfig) -> None:
     plt.show(block=False)
 
     plt.clf()
-    plt.plot(range(max_t), actions, '.-k')
-    plt.yticks([0,1,2,3], labels=['(0,0)', '(0,1)', '(1,0)', '(1,1)'])
+    plt.plot(range(max_t), nu_, '.-k', label = 'Vaccine')
+    plt.plot(range(max_t), tau_, '.-b', label = 'Treatment')
+    plt.plot(range(max_t), sigma_, '.-r', label = 'Social Distancing')
     plt.grid()
-    plt.title('Vaccine Control')
+    plt.legend()
+    plt.title('Control('+ str(cost)+')')
     plt.xlabel('day')
     plt.savefig('SLIAR_control_u.png', dpi=300)
     plt.show(block=False)
