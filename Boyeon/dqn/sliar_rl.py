@@ -122,6 +122,7 @@ def main(conf : DictConfig) -> None:
     scores = []                        # list containing scores from each episode
     scores_window = deque(maxlen=100)  # last 100 scores
     eps = eps_start                    # initialize epsilon
+    eps_window = []
     for i_episode in range(1, n_episodes+1):
         state = env.reset()
         score = 0
@@ -138,6 +139,7 @@ def main(conf : DictConfig) -> None:
         scores_window.append(score)       # save most recent score
         scores.append(score)              # save most recent score
         eps = max(eps_end, eps_decay*eps) # decrease epsilon
+        eps_window.append(eps)
         print('\rEpisode {}\tAverage Score: {:,.2f}'.format(i_episode, np.mean(scores_window)), end="")
         if i_episode % 400 == 0:
             print('\rEpisode {}\tAverage Score: {:,.2f}'.format(i_episode, np.mean(scores_window)))
@@ -157,6 +159,15 @@ def main(conf : DictConfig) -> None:
     plt.savefig('SLIAR_score.png', dpi=300)
     plt.show(block=False)
 
+    plt.clf()
+    plt.plot(eps_window)
+    plt.grid()
+    plt.title('The change of epsilon'+str(eps_start))
+    plt.ylabel('epsilon')
+    plt.xlabel('episode')
+    plt.savefig('epsilon.png', dpi=300)
+    plt.show(block=False)
+
     # 3. Visualize Controlled SIR Dynamics
     agent.qnetwork_local.load_state_dict(torch.load('checkpoint.pth'))
     env = SliarEnvironment()
@@ -170,6 +181,20 @@ def main(conf : DictConfig) -> None:
         next_state, reward, done, _ = env.step(action)
         states = np.vstack((states, next_state))
         state = next_state
+
+
+    ACTIONSS = np.array(ACTIONSS).reshape(max_t, 3)
+    S, L, I, A = np.hsplit(states, 4)
+    nu_, tau_, sigma_ = np.hsplit(ACTIONSS, conf.action_dim)
+    I_mid = (I[1:] + I[:-1]) / 2.
+    nu_mid = (nu_[1:] + nu_[:-1]) / 2.
+    tau_mid = (tau_[1:] + tau_[:-1]) / 2.
+    sigma_mid = (sigma_[1:] + sigma_[:-1]) / 2.
+    cost1 = np.sum(I_mid.flatten())
+    cost2 = np.sum((conf.nu_max * nu_mid.flatten()) ** 2)
+    cost3 = np.sum((conf.tau_max * tau_mid.flatten()) ** 2)
+    cost4 = np.sum((conf.sigma_max * sigma_mid.flatten()) ** 2)
+    cost = cost1 + conf.Q * cost2 + conf.R * cost3 + conf.W * cost4
 
     plt.clf()
     fig, ax1 = plt.subplots()
