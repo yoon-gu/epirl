@@ -55,17 +55,17 @@ class Agent():
         
         # version 1: At every step, qnetwork_local is updated
         # If enough samples are available in memory, get random subset and learn
-        if len(self.memory) > BATCH_SIZE:
-            experiences = self.memory.sample()
-            self.learn(experiences, GAMMA)
+        # if len(self.memory) > BATCH_SIZE:
+        #     experiences = self.memory.sample()
+        #     self.learn(experiences, GAMMA)
             
         # version 2: For each UPDATE_EVERY step, qnetwork_local is updated
-        # self.t_step = (self.t_step + 1) % UPDATE_EVERY
-        # if self.t_step == 0:
-        #     # If enough samples are available in memory, get random subset and learn
-        #     if len(self.memory) > BATCH_SIZE:
-        #         experiences = self.memory.sample()
-        #         self.learn(experiences, GAMMA)
+        self.t_step = (self.t_step + 1) % UPDATE_EVERY
+        if self.t_step == 0:
+            # If enough samples are available in memory, get random subset and learn
+            if len(self.memory) > BATCH_SIZE:
+                experiences = self.memory.sample()
+                self.learn(experiences, GAMMA)
                 
         # =================================================================================
         
@@ -146,11 +146,11 @@ class Agent():
         ## Variable 2
         
         # version 1: For each 'UPDATE_EVERY' times, qnetwork_target is updated
-        if self.t_step==0:
-            self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
+        # if self.t_step==0:
+        #     self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
             
         # version 2: q_network_target is updated whenever qnetwork_local is updated
-        # self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
+        self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
         
         # =================================================================================
         
