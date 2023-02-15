@@ -87,25 +87,25 @@ class Agent():
         ## Variable 1
         
         # version 1: choose random number before load q_network
-        if random.random() > eps:
-            state = torch.from_numpy(state).float().unsqueeze(0).to(device)
-            self.qnetwork_local.eval()
-            with torch.no_grad():
-                action_values = self.qnetwork_local(state)
-            self.qnetwork_local.train()
+        # if random.random() > eps:
+        #     state = torch.from_numpy(state).float().unsqueeze(0).to(device)
+        #     self.qnetwork_local.eval()
+        #     with torch.no_grad():
+        #         action_values = self.qnetwork_local(state)
+        #     self.qnetwork_local.train()
             
-            return np.argmax(action_values.cpu().data.numpy())
+        #     return np.argmax(action_values.cpu().data.numpy())
         
         
         # version 2: load q_network and choose random number
-        # state = torch.from_numpy(state).float().unsqueeze(0).to(device)
-        # self.qnetwork_local.eval()
-        # with torch.no_grad():
-        #     action_values = self.qnetwork_local(state)
-        # self.qnetwork_local.train()
+        state = torch.from_numpy(state).float().unsqueeze(0).to(device)
+        self.qnetwork_local.eval()
+        with torch.no_grad():
+            action_values = self.qnetwork_local(state)
+        self.qnetwork_local.train()
         
-        # if random.random() > eps:
-        #     return np.argmax(action_values.cpu().data.numpy())
+        if random.random() > eps:
+            return np.argmax(action_values.cpu().data.numpy())
         
         # =================================================================================
         
