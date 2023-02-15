@@ -4,6 +4,7 @@ from hydra.utils import instantiate
 import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 from plotly.subplots import make_subplots
 from omegaconf import DictConfig, OmegaConf
@@ -54,10 +55,16 @@ def main(conf: DictConfig):
     callback = CallbackList([checkpoint_callback, eval_callback])
 
     model.learn(total_timesteps=conf.n_steps, callback=callback)
-    model.save("sir_ppo")
+    model.load('best_model/best_model')
     mean_reward, std_reward = evaluate_policy(model, train_env, n_eval_episodes=100)
     print("After:")
     print(f"\tmean_reward:{mean_reward:,.2f} +/- {std_reward:.2f}")
+
+    df = pd.read_csv(f"{log_dir}/monitor.csv", skiprows=1)
+    sns.lineplot(data=df.r)
+    plt.xlabel('steps')
+    plt.ylabel('reward')
+    plt.show()
 
     # Visualize Controlled SIR Dynamics
     state = eval_env.reset()
@@ -66,16 +73,29 @@ def main(conf: DictConfig):
         state, _, _, _ = eval_env.step(action)
 
     df = eval_env.dynamics
+    os.makedirs('figures', exist_ok=True)
     sns.lineplot(data=df, x='days', y='susceptible', marker=".")
     sns.lineplot(data=df, x='days', y='infected', marker=".")
     ax2 = plt.twinx()
     sns.lineplot(data=df, x='days', y='vaccines', ax=ax2, marker="o", color="g")
     plt.grid()
+    plt.savefig(f"figures/best.png")
     plt.show()
-
-    df = pd.read_csv(f"{log_dir}/monitor.csv", skiprows=1)
-    sns.lineplot(data=df.r)
-    plt.show()
-
+    
+    for path in tqdm(os.listdir('checkpoints')):
+        model = PPO.load(f'checkpoints/{path}')
+        state = eval_env.reset()
+        done = False
+        while not done:
+            action, _ = model.predict(state)
+            state, _, done, _ = eval_env.step(action)
+        df = eval_env.dynamics
+        sns.lineplot(data=df, x='days', y='susceptible', marker=".")
+        sns.lineplot(data=df, x='days', y='infected', marker=".")
+        ax2 = plt.twinx()
+        sns.lineplot(data=df, x='days', y='vaccines', ax=ax2, marker="o", color="g")
+        plt.grid()
+        plt.savefig(f"figures/{path.replace('.zip', '.png')}")
+        plt.clf()
 if __name__ == '__main__':
     main()
