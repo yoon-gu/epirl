@@ -6,6 +6,8 @@ sir:
   I0: 10
   v_min: 0.0
   v_max: 1.0
+  vaccine_importance: 10.0
+  continuous_actions: true
   tf: 30
 
 n_steps: 10000
