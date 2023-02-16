@@ -45,7 +45,8 @@ def main(conf: DictConfig):
     eval_env = instantiate(conf.sir)
     eval_callback = EvalCallback(
             eval_env,
-            eval_freq=5000,
+            eval_freq=1000,
+            verbose=0,
             warn=False,
             log_path='eval_log',
             best_model_save_path='best_model'
@@ -60,11 +61,13 @@ def main(conf: DictConfig):
     print("After:")
     print(f"\tmean_reward:{mean_reward:,.2f} +/- {std_reward:.2f}")
 
+    os.makedirs('figures', exist_ok=True)
     df = pd.read_csv(f"{log_dir}/monitor.csv", skiprows=1)
     sns.lineplot(data=df.r)
-    plt.xlabel('steps')
+    plt.xlabel('episodes')
     plt.ylabel('reward')
-    plt.show()
+    plt.savefig(f"figures/reward.png")
+    plt.clf()
 
     # Visualize Controlled SIR Dynamics
     state = eval_env.reset()
@@ -73,15 +76,14 @@ def main(conf: DictConfig):
         state, _, _, _ = eval_env.step(action)
 
     df = eval_env.dynamics
-    os.makedirs('figures', exist_ok=True)
     sns.lineplot(data=df, x='days', y='susceptible', marker=".")
     sns.lineplot(data=df, x='days', y='infected', marker=".")
     ax2 = plt.twinx()
     sns.lineplot(data=df, x='days', y='vaccines', ax=ax2, marker="o", color="g")
     plt.grid()
     plt.savefig(f"figures/best.png")
-    plt.show()
-    
+    plt.clf()
+
     for path in tqdm(os.listdir('checkpoints')):
         model = PPO.load(f'checkpoints/{path}')
         state = eval_env.reset()
