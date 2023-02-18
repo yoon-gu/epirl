@@ -49,11 +49,26 @@ class Agent():
 
         # update self.t_step to use in learn function
         self.t_step = (self.t_step + 1) % UPDATE_EVERY
+        
+        # =================================================================================
+        ## Variable 2
+        
+        # version 1: At every step, qnetwork_local is updated
         # If enough samples are available in memory, get random subset and learn
         if len(self.memory) > BATCH_SIZE:
             experiences = self.memory.sample()
             self.learn(experiences, GAMMA)
-            # At every step, qnetwork_local is updated
+            
+        # version 2: For each UPDATE_EVERY step, qnetwork_local is updated
+        # self.t_step = (self.t_step + 1) % UPDATE_EVERY
+        # if self.t_step == 0:
+        #     # If enough samples are available in memory, get random subset and learn
+        #     if len(self.memory) > BATCH_SIZE:
+        #         experiences = self.memory.sample()
+        #         self.learn(experiences, GAMMA)
+                
+        # =================================================================================
+        
 
     def act(self, state, eps=0.):
         """Returns actions for given state as per current policy.
@@ -66,17 +81,37 @@ class Agent():
         
 
         # Epsilon-greedy action selection
-        if random.random() > eps:
-            state = torch.from_numpy(state).float().unsqueeze(0).to(device)
-            self.qnetwork_local.eval()
-            with torch.no_grad():
-                action_values = self.qnetwork_local(state)
-            self.qnetwork_local.train()
+        
+        
+        # =================================================================================
+        ## Variable 1
+        
+        # version 1: choose random number before load q_network
+        # if random.random() > eps:
+        #     state = torch.from_numpy(state).float().unsqueeze(0).to(device)
+        #     self.qnetwork_local.eval()
+        #     with torch.no_grad():
+        #         action_values = self.qnetwork_local(state)
+        #     self.qnetwork_local.train()
             
+        #     return np.argmax(action_values.cpu().data.numpy())
+        
+        
+        # version 2: load q_network and choose random number
+        state = torch.from_numpy(state).float().unsqueeze(0).to(device)
+        self.qnetwork_local.eval()
+        with torch.no_grad():
+            action_values = self.qnetwork_local(state)
+        self.qnetwork_local.train()
+        
+        if random.random() > eps:
             return np.argmax(action_values.cpu().data.numpy())
+        
+        # =================================================================================
+        
+        
         else:
             return random.choice(np.arange(self.action_size))
-        # epsilon을 먼저 구한 이후 실제 값을 구해야 할때만 qnetwork에서 값을 찾도록 변경
 
     def learn(self, experiences, gamma):
         """Update value parameters using given batch of experience tuples.
@@ -106,9 +141,19 @@ class Agent():
         self.optimizer.step()
 
         # ------------------- update target network ------------------- #
-        # For each 'UPDATE_EVERY' times, qnetwork_target is updated
+        
+        # =================================================================================
+        ## Variable 2
+        
+        # version 1: For each 'UPDATE_EVERY' times, qnetwork_target is updated
         if self.t_step==0:
             self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
+            
+        # version 2: q_network_target is updated whenever qnetwork_local is updated
+        # self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
+        
+        # =================================================================================
+        
 
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
