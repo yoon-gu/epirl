@@ -22,8 +22,8 @@ class SirEnvironment(gym.Env):
     infected: list
     actions: list
     vaccine_importance: float
-    continuous_actions: bool
-    def __init__(self, S0, I0, beta, gamma, v_min, v_max, tf, dt, vaccine_importance, continuous_actions):
+    continuous: bool
+    def __init__(self, S0, I0, beta, gamma, v_min, v_max, tf, dt, vaccine_importance, continuous, population):
         self.state = np.array([S0, I0])
         self.beta = beta
         self.gamma = gamma
@@ -33,18 +33,20 @@ class SirEnvironment(gym.Env):
         self.I0 = I0
         self.tf = tf
         self.vaccine_importance = vaccine_importance
-        self.continuous_actions = continuous_actions
+        self.continuous = continuous
         self.observation_space = gym.spaces.Box(
                     low=np.array([0.0, 0.0], dtype=np.float32),
-                    high=np.array([1000.0, 1000.0], dtype=np.float32),
+                    high=np.array([population, population], dtype=np.float32),
                     dtype=np.float32)
-        if self.continuous_actions:
+
+        if self.continuous:
             self.action_space = gym.spaces.Box(
                         low=np.array([-1.0], dtype=np.float32),
                         high=np.array([1.0], dtype=np.float32),
                         dtype=np.float32)
         else:
             self.action_space = gym.spaces.Discrete(2)
+
         self.time = 0.0
         self.dt = dt
 
@@ -56,13 +58,13 @@ class SirEnvironment(gym.Env):
         self.actions = []
         self.rewards = []
         self.state = np.array([self.S0, self.I0])
-        return np.array(self.state, dtype=np.float32)
+        return np.array(self.state, dtype=np.float32), {}
 
     def action2vaccine(self, action):
         return self.v_min + self.v_max * (action[0] + 1.0) / 2.0
 
     def step(self, action):
-        if self.continuous_actions:
+        if self.continuous:
             vaccine = self.action2vaccine(action)
         else:
             vaccine = self.v_min if action == 0 else self.v_max
@@ -83,7 +85,7 @@ class SirEnvironment(gym.Env):
         self.infected.append(I)
 
         done = True if self.time >= self.tf else False
-        return (np.array(new_state, dtype=np.float32), reward, done, {})
+        return (np.array(new_state, dtype=np.float32), reward, done, False,{})
 
     @property
     def dynamics(self):

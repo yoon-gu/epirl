@@ -1,5 +1,6 @@
 sir:
   _target_: envs.SirEnvironment
+  population: 1000
   beta: 0.002
   gamma: 0.5
   S0: 990
@@ -7,7 +8,7 @@ sir:
   v_min: 0.0
   v_max: 1.0
   vaccine_importance: 10.0
-  continuous_actions: true
+  continuous: true
   tf: 30
   dt: 1.0
 

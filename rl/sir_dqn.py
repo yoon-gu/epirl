@@ -26,18 +26,18 @@ from stable_baselines3.common.callbacks import (
 
 sns.set_theme(style="whitegrid")
 
-@hydra.main(version_base=None, config_path="conf", config_name="ppo")
+@hydra.main(version_base=None, config_path="conf", config_name="dqn")
 def main(conf: DictConfig):
     train_env = instantiate(conf.sir)
     check_env(train_env)
-    log_dir = "./sir_ppo_log"
+    log_dir = "./sir_dqn_log"
     os.makedirs(log_dir, exist_ok=True)
     train_env = Monitor(train_env, log_dir)
     policy_kwargs = dict(
                             # activation_fn=torch.nn.ReLU,
                             # net_arch=[16, 32, 64, 16]
                         )
-    model = PPO("MlpPolicy", train_env, verbose=0,
+    model = DQN("MlpPolicy", train_env, verbose=0,
                 policy_kwargs=policy_kwargs)
     mean_reward, std_reward = evaluate_policy(model, train_env, n_eval_episodes=100)
     print("Before:")
@@ -87,7 +87,7 @@ def main(conf: DictConfig):
     plt.close()
 
     for path in tqdm(os.listdir('checkpoints')):
-        model = PPO.load(f'checkpoints/{path}')
+        model = DQN.load(f'checkpoints/{path}')
         state, _ = eval_env.reset()
         done = False
         while not done:
