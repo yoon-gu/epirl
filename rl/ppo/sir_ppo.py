@@ -56,7 +56,6 @@ def main(conf: DictConfig):
     callback = CallbackList([checkpoint_callback, eval_callback])
 
     model.learn(total_timesteps=conf.n_steps, callback=callback)
-    model.load('best_model/best_model')
     mean_reward, std_reward = evaluate_policy(model, train_env, n_eval_episodes=100)
     print("After:")
     print(f"\tmean_reward:{mean_reward:,.2f} +/- {std_reward:.2f}")
@@ -65,9 +64,9 @@ def main(conf: DictConfig):
     df = pd.read_csv(f"{log_dir}/monitor.csv", skiprows=1)
     sns.lineplot(data=df.r)
     plt.xlabel('episodes')
-    plt.ylabel('reward')
+    plt.ylabel('The cummulative return')
     plt.savefig(f"figures/reward.png")
-    plt.clf()
+    plt.close()
 
     # Visualize Controlled SIR Dynamics
     state = eval_env.reset()
@@ -81,8 +80,9 @@ def main(conf: DictConfig):
     ax2 = plt.twinx()
     sns.lineplot(data=df, x='days', y='vaccines', ax=ax2, marker="o", color="g")
     plt.grid()
+    plt.title(f"R = {df.rewards.sum():4.2f}")
     plt.savefig(f"figures/best.png")
-    plt.clf()
+    plt.close()
 
     for path in tqdm(os.listdir('checkpoints')):
         model = PPO.load(f'checkpoints/{path}')
@@ -92,12 +92,16 @@ def main(conf: DictConfig):
             action, _ = model.predict(state)
             state, _, done, _ = eval_env.step(action)
         df = eval_env.dynamics
-        sns.lineplot(data=df, x='days', y='susceptible', marker=".")
-        sns.lineplot(data=df, x='days', y='infected', marker=".")
-        ax2 = plt.twinx()
+        fig, (a1, a2) = plt.subplots(2, 1)
+        sns.lineplot(ax=a1, data=df, x='days', y='susceptible', marker=".")
+        sns.lineplot(ax=a1, data=df, x='days', y='infected', marker=".")
+        ax2 = a1.twinx()
         sns.lineplot(data=df, x='days', y='vaccines', ax=ax2, marker="o", color="g")
         plt.grid()
+        sns.lineplot(ax=a2, data=df, x='days', y='rewards', marker="^")
+        a2.set_ylim([-80, 10])
+        plt.title(f"R = {df.rewards.sum():4.2f} ({int(path.split('_')[2]):,})")
         plt.savefig(f"figures/{path.replace('.zip', '.png')}")
-        plt.clf()
+        plt.close()
 if __name__ == '__main__':
     main()

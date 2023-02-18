@@ -9,8 +9,9 @@ sir:
   vaccine_importance: 10.0
   continuous_actions: true
   tf: 30
+  dt: 1.0
 
-n_steps: 10000
+n_steps: 50000
 
 hydra:
   job:
