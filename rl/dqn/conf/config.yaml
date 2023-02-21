@@ -9,6 +9,25 @@ eps_start: 1.0
 eps_end: 0.001
 eps_decay: 0.995
 
+################for sliar########################
+tf_sliar: 300
+
+Q: 1000000
+R: 1000000
+W: 1000000
+
+nu_actions: [0,1]
+tau_actions: [0]
+sigma_actions: [0]
+
+nu_max: 0.01
+tau_max: 0.05
+sigma_max: 0.01
+action_dim: 3
+
 hydra:
   job:
     chdir: true
+
+defaults:
+  - override hydra/launcher: joblib

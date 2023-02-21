@@ -122,7 +122,7 @@ def main(conf : DictConfig) -> None:
     agent = Agent(state_size=4, action_size=action_size, seed=0)
     ## Parameters
     n_episodes=conf.n_episodes
-    max_t=conf.tf
+    max_t=conf.tf_sliar
     eps_start=conf.eps_start
     eps_end=conf.eps_end
     eps_decay=conf.eps_decay
