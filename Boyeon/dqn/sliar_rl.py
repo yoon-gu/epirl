@@ -134,13 +134,16 @@ def main(conf : DictConfig) -> None:
     eps_window = []
     for i_episode in range(1, n_episodes+1):
         state = env.reset()
+        states = state
         score = 0
         actions = []
+        ACTIONSS = []
         for t in range(max_t):
-            action = agent.act(state,eps)
+            action = agent.act(state, eps)
             actions.append(action)
             next_state, reward, done, _ = env.step(action)
             agent.step(state, action, reward, next_state, done)
+            states = np.vstack((states, next_state))
             state = next_state
             score += reward
             if done:
@@ -150,9 +153,69 @@ def main(conf : DictConfig) -> None:
         eps = max(eps_end, eps_decay*eps) # decrease epsilon
         eps_window.append(eps)
         print('\rEpisode {}\tAverage Score: {:,.2f}'.format(i_episode, np.mean(scores_window)), end="")
-        if i_episode % 400 == 0:
+        if i_episode % 1000 == 0:
             print('\rEpisode {}\tAverage Score: {:,.2f}'.format(i_episode, np.mean(scores_window)))
             print(np.array(actions)[:5], eps)
+            state = env.reset()
+            max_t = 300
+            states = state
+            actions = []
+            ACTIONSS = []
+            score = 0
+            for t in range(max_t):
+                action = agent.act(state, eps=0.0)
+                ACTION = ACTIONS[action]
+                ACTIONSS = np.append(ACTIONSS, ACTION)
+                actions = np.append(actions, action)
+                next_state, reward, done, _ = env.step(action)
+                states = np.vstack((states, next_state))
+                state = next_state
+
+            ACTIONSS = np.array(ACTIONSS).reshape(max_t, 3)
+            S, L, I, A = np.hsplit(states, 4)
+            nu_, tau_, sigma_ = np.hsplit(ACTIONSS, conf.action_dim)
+            I_mid = (I[1:] + I[:-1]) / 2.
+            nu_mid = (nu_[1:] + nu_[:-1]) / 2.
+            tau_mid = (tau_[1:] + tau_[:-1]) / 2.
+            sigma_mid = (sigma_[1:] + sigma_[:-1]) / 2.
+            cost1 = np.sum(I_mid.flatten())
+            cost2 = np.sum((conf.nu_max * nu_mid.flatten()) ** 2)
+            cost3 = np.sum((conf.tau_max * tau_mid.flatten()) ** 2)
+            cost4 = np.sum((conf.sigma_max * sigma_mid.flatten()) ** 2)
+            cost = cost1 + conf.Q * cost2 + conf.R * cost3 + conf.W * cost4
+
+            plt.clf()
+            plt.plot(scores)
+            plt.grid()
+            plt.ylabel('cumulative future reward')
+            plt.xlabel('episode')
+            plt.savefig('SLIAR_score'+str(i_episode)+'.png', dpi=300)
+            plt.show(block=False)
+
+            plt.clf()
+            fig, ax1 = plt.subplots()
+            ax1.plot(range(max_t+1), states[:,0], '.-b', label = 'S')
+            ax1.legend(loc='upper left')
+            ax2 = ax1.twinx()
+            ax2.plot(range(max_t+1), states[:,1], '.-y', label = 'L')
+            ax2.plot(range(max_t+1), states[:,2], '.-r', label = 'I')
+            ax2.plot(range(max_t+1), states[:,3], '.-g', label = 'A')
+            ax2.legend(loc='lower right')
+            plt.grid()
+            plt.legend()
+            plt.title('SLIAR model with control : n = '+str(i_episode))
+            plt.xlabel('day')
+            plt.savefig('SLIAR_w_control'+str(i_episode)+'.png', dpi=300)
+            plt.clf()
+            plt.plot(range(max_t), nu_, 'k+--', label = 'Vaccine')
+            plt.plot(range(max_t), tau_, 'bx--', label = 'Treatment')
+            plt.plot(range(max_t), sigma_, 'r1--', label = 'Social Distancing')
+            plt.grid()
+            plt.legend()
+            plt.title('Control('+ str(cost)+') : n = '+str(i_episode))
+            plt.xlabel('day')
+            plt.savefig('SLIAR_control_u.png'+str(i_episode)+'.png', dpi=300)
+
         if np.mean(scores_window)>=200.0:
             print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(i_episode-100, np.mean(scores_window)))
             torch.save(agent.qnetwork_local.state_dict(), 'checkpoint2.pth')
@@ -185,6 +248,7 @@ def main(conf : DictConfig) -> None:
     states = state
     actions = []
     ACTIONSS = []
+    score = 0
     for t in range(max_t):
         action = agent.act(state, eps=0.0)
         ACTION = ACTIONS[action]
