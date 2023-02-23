@@ -9,6 +9,7 @@ def sir(y, t, beta, gamma, u):
     return dydt
 
 class SirEnvironment(gym.Env):
+    population: float
     beta: float
     gamma: float
     v_min: float
@@ -96,5 +97,142 @@ class SirEnvironment(gym.Env):
                                 vaccines=self.actions + [None],
                                 rewards=self.rewards + [None]
                             )
+                        )
+        return df
+
+def sliar(y, t, beta, sigma, kappa, alpha, tau, p, eta, epsilon, q, delta, nu):
+    S, L, I , A = y
+    dydt = np.array([- beta * (1-sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - nu * S,
+                    beta * (1-sigma) * S * (epsilon * L + (1 - q) * I + delta * A) - kappa * L,
+                    p * kappa * L - alpha * I - tau * I,
+                    (1 - p) * kappa * L  - eta * A])
+    return dydt
+
+class SliarEnvironment(gym.Env):
+    population: float
+    beta: float
+    sigma_min: float
+    sigma_max: float
+    kappa_min: float
+    kappa_max: float
+    tau_min: float
+    tau_max: float
+    tau: float
+    p: float
+    eta: float
+    epsilon: float
+    q: float
+    delta: float
+    S0: float
+    I0: float
+    L0: float
+    A0: float
+    tf: float
+    dt: float
+    P: float
+    Q: float
+    R: float
+    W: float
+    def __init__(self, S0, I0, L0, A0, R0,
+                 sigma_min, sigma_max, nu_min, nu_max, kappa,
+                 alpha, tau_min, tau_max, p, eta, epsilon,
+                 q, delta, tf, dt, population, P, Q, R, W):
+        self.state = np.array([S0, L0, I0, A0])
+        self.S0 = S0
+        self.I0 = I0
+        self.L0 = L0
+        self.A0 = A0
+        self.beta = R0 / (S0 * ((epsilon / kappa) + ((1 - q)*p/alpha) + (delta*(1-p)/eta)))
+        self.sigma_min = sigma_min
+        self.sigma_max = sigma_max
+        self.kappa = kappa
+        self.tau_min = tau_min
+        self.tau_max = tau_max
+        self.nu_min = nu_min
+        self.nu_max = nu_max
+        self.alpha = alpha
+        self.p = p
+        self.eta = eta
+        self.epsilon = epsilon
+        self.q = q
+        self.delta = delta
+        self.tf = tf
+        self.dt = dt
+        self.P = P
+        self.Q = Q
+        self.R = R
+        self.W = W
+        self.observation_space = gym.spaces.Box(
+                    low=np.array([0.0]*4, dtype=np.float32),
+                    high=np.array([population]*4, dtype=np.float32),
+                    dtype=np.float32)
+        self.action_space = gym.spaces.Box(
+                        low=np.array([-1.0]*3, dtype=np.float32),
+                        high=np.array([1.0]*3, dtype=np.float32),
+                        dtype=np.float32)
+
+        self.time = 0.0
+        self.dt = dt
+
+    def reset(self):
+        self.time = 0.0
+        self.days = [self.time]
+        self.susceptible = [self.S0]
+        self.latent = [self.L0]
+        self.infected = [self.I0]
+        self.asymp = [self.A0]
+        self.nus = []
+        self.taus = []
+        self.sigmas = []
+        self.rewards = []
+        self.state = np.array([self.S0, self.L0, self.I0, self.A0])
+        return np.array(self.state, dtype=np.float32), {}
+
+    def action2control(self, action):
+        nu = self.nu_min + (self.nu_max - self.nu_min) * (action[0] + 1.0) / 2.0
+        tau = self.tau_min + (self.tau_max - self.tau_min) * (action[1] + 1.0) / 2.0
+        sigma = self.sigma_min + (self.sigma_max - self.sigma_min) * (action[2] + 1.0) / 2.0
+        return np.array([nu, tau, sigma], dtype=np.float32)
+
+    def step(self, action):
+        nu, tau, sigma = self.action2control(action)
+        self.nus.append(nu)
+        self.taus.append(tau)
+        self.sigmas.append(sigma)
+
+        sol = odeint(sliar, self.state, np.linspace(0, self.dt, 101),
+                     args=(self.beta, sigma, self.kappa, self.alpha, tau, self.p, self.eta, self.epsilon, self.q, self.delta, nu))
+
+        self.time += self.dt
+        new_state = sol[-1, :]
+        S0, L0, I0, A0 = self.state
+        S, L, I, A = new_state
+        self.state = new_state
+        reward = - self.P * I - self.Q * nu ** 2 - self.R * tau ** 2 - self.W * sigma ** 2
+        reward *= self.dt
+
+        self.rewards.append(reward)
+        self.days.append(self.time)
+        self.susceptible.append(S)
+        self.latent.append(L)
+        self.infected.append(I)
+        self.asymp.append(A)
+
+        done = True if self.time >= self.tf else False
+        return (np.array(new_state, dtype=np.float32), reward, done, False,{})
+
+    @property
+    def dynamics(self):
+        df = pd.DataFrame(dict(
+                                days=self.days,
+                                susceptible=self.susceptible,
+                                latent=self.latent,
+                                infected=self.infected,
+                                asymp=self.asymp,
+                                nus=self.nus + [None],
+                                taus=self.taus + [None],
+                                sigmas=self.sigmas + [None],
+                                rewards=self.rewards + [None])
+
                         )
         return df
