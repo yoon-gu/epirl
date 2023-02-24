@@ -24,6 +24,8 @@ def main(conf: DictConfig) -> None:
             self.state = np.array([S0, I0])
             self.beta = conf.beta
             self.gamma = conf.gamma
+            self.nu = conf.nu
+            self.w_action = conf.w_action
 
         def reset(self, S0=conf.S0, I0=conf.I0):
             self.state = np.array([S0, I0])
@@ -32,12 +34,12 @@ def main(conf: DictConfig) -> None:
             return self.state
 
         def step(self, action):
-            sol = odeint(sir, self.state, np.linspace(0, 1, 101), args=(self.beta, self.gamma, action))
+            sol = odeint(sir, self.state, np.linspace(0, 1, 101), args=(self.beta, self.gamma, self.nu*action))
             new_state = sol[-1, :]
             S0, I0 = self.state
             S, I = new_state
             self.state = new_state
-            reward = - I - action
+            reward = - I - action*self.w_action
             done = True if new_state[1] < 1.0 else False
             return (new_state, reward, done, 0)
 
