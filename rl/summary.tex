@@ -10,6 +10,7 @@
 \usepackage{braket, dsfont, times}
 \usepackage{pgffor}
 \usepackage{verbatim}
+\usepackage{multicol}
 
 \def\cF{\mathcal{F}}
 \def\cM{\mathcal{M}}
@@ -31,17 +32,7 @@
 \def\bsigma{\boldsymbol{\sigma}}
 
 \usepackage{xcolor}
-\usepackage{listings}
-
-\lstdefinestyle{yaml}{
-     basicstyle=\color{blue}\footnotesize,
-     rulecolor=\color{black},
-     string=[s]{'}{'},
-     stringstyle=\color{blue},
-     comment=[l]{:},
-     commentstyle=\color{black},
-     morecomment=[l]{-}
- }
+\usepackage{minted}
 
 \title{SLIAR + PPO}
 \author{Yoon-gu Hwang}
@@ -53,22 +44,26 @@
 
 \foreach \alg in {0, 1, 2, 3, 4, 5} {
 
-	\begin{frame}\frametitle{Configuration \alg}
-	    \lstinputlisting[style=yaml]{multirun/2023-03-03/00-31-23/\alg/.hydra/overrides.yaml}
+	\begin{frame}[containsverbatim]\frametitle{Configuration \alg}
+	    % \lstinputlisting{multirun/2023-03-03/00-31-23/\alg/.hydra/overrides.yaml}
+        \begin{multicols}{2}
+        \inputminted[fontsize=\scriptsize,firstline=9,lastline=30]{yaml}{multirun/2023-03-03/00-31-23/\alg/.hydra/config.yaml}\vfill\eject
+        \inputminted[fontsize=\scriptsize]{yaml}{multirun/2023-03-03/00-31-23/\alg/.hydra/overrides.yaml}
+        \end{multicols}
 	\end{frame}
-	\begin{frame}\frametitle{\alg}
+	\begin{frame}[containsverbatim]\frametitle{Configuration \alg}
 	\begin{figure}[tb]
 		\includegraphics[height=0.8\textheight]{multirun/2023-03-03/00-31-23/\alg/figures/reward.png}
 	\end{figure}
 	\end{frame}
 
-	\begin{frame}\frametitle{\alg}
+	\begin{frame}[containsverbatim]\frametitle{Configuration \alg}
 	\begin{figure}[tb]
 		\includegraphics[height=0.8\textheight]{multirun/2023-03-03/00-31-23/\alg/figures/best.png}
 	\end{figure}
 	\end{frame}
 
-	\begin{frame}\frametitle{\alg}
+	\begin{frame}[containsverbatim]\frametitle{Configuration \alg}
 	\begin{figure}[tb]
 		\includegraphics[height=0.8\textheight]{multirun/2023-03-03/00-31-23/\alg/figures/best_checkpoint.png}
 	\end{figure}
