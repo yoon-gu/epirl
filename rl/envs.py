@@ -136,7 +136,7 @@ class SliarEnvironment(gym.Env):
     def __init__(self, S0, I0, L0, A0, R0,
                  sigma_min, sigma_max, nu_min, nu_max, kappa,
                  alpha, tau_min, tau_max, p, eta, epsilon,
-                 q, delta, tf, dt, population, P, Q, R, W):
+                 q, delta, tf, dt, population, P, Q, R, W, continuous):
         self.state = np.array([S0, L0, I0, A0])
         self.S0 = S0
         self.I0 = I0
@@ -162,14 +162,19 @@ class SliarEnvironment(gym.Env):
         self.Q = Q
         self.R = R
         self.W = W
+        self.continuous = continuous
+
         self.observation_space = gym.spaces.Box(
                     low=np.array([0.0]*4, dtype=np.float32),
                     high=np.array([population]*4, dtype=np.float32),
                     dtype=np.float32)
-        self.action_space = gym.spaces.Box(
-                        low=np.array([-1.0]*3, dtype=np.float32),
-                        high=np.array([1.0]*3, dtype=np.float32),
-                        dtype=np.float32)
+        if self.continuous:
+            self.action_space = gym.spaces.Box(
+                            low=np.array([-1.0]*3, dtype=np.float32),
+                            high=np.array([1.0]*3, dtype=np.float32),
+                            dtype=np.float32)
+        else:
+            self.action_space = gym.spaces.MultiBinary(3)
 
         self.time = 0.0
         self.dt = dt
