@@ -42,30 +42,31 @@
 \begin{document}
 \maketitle
 
-\foreach \alg in {0, 1, 2, 3, 4} {
+\foreach \alg in {0, 1, 2, 3} {
 
-	\begin{frame}[containsverbatim]\frametitle{Configuration \alg}
+	\begin{frame}[containsverbatim]\frametitle{Experiment \alg}
         \begin{multicols}{2}
-        \inputminted[fontsize=\scriptsize,firstline=9,lastline=30]{yaml}{multirun/2023-03-03/01-18-51/\alg/.hydra/config.yaml}\vfill\eject
-        \inputminted[fontsize=\scriptsize]{yaml}{multirun/2023-03-03/01-18-51/\alg/.hydra/overrides.yaml}
+        \inputminted[fontsize=\scriptsize,firstline=9,lastline=30]{yaml}{multirun/2023-03-03/10-56-12/\alg/.hydra/config.yaml}\vfill\eject
+        \inputminted[fontsize=\scriptsize]{yaml}{multirun/2023-03-03/10-56-12/\alg/.hydra/overrides.yaml}
         \end{multicols}
 	\end{frame}
-	\begin{frame}[containsverbatim]\frametitle{Configuration \alg}
+	\begin{frame}[containsverbatim]\frametitle{Experiment \alg}
 	\begin{figure}[tb]
-		\includegraphics[height=0.8\textheight]{multirun/2023-03-03/01-18-51/\alg/figures/reward.png}
+		\includegraphics[height=0.8\textheight]{multirun/2023-03-03/10-56-12/\alg/figures/reward.png}
 	\end{figure}
 	\end{frame}
 
-	\begin{frame}[containsverbatim]\frametitle{Configuration \alg}
+	\begin{frame}[containsverbatim]\frametitle{Experiment \alg}
 	\begin{figure}[tb]
-		\includegraphics[height=0.8\textheight]{multirun/2023-03-03/01-18-51/\alg/figures/best.png}
+		\includegraphics[height=0.8\textheight]{multirun/2023-03-03/10-56-12/\alg/figures/best.png}
 	\end{figure}
 	\end{frame}
 
-	\begin{frame}[containsverbatim]\frametitle{Configuration \alg}
+	\begin{frame}[containsverbatim]\frametitle{Experiment \alg}
 	\begin{figure}[tb]
-		\includegraphics[height=0.8\textheight]{multirun/2023-03-03/01-18-51/\alg/figures/best_checkpoint.png}
+		\includegraphics[height=0.8\textheight]{multirun/2023-03-03/10-56-12/\alg/figures/best_checkpoint.png}
 	\end{figure}
 	\end{frame}
 }
+
 \end{document}
