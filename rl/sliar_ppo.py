@@ -41,8 +41,9 @@ def main(conf: DictConfig):
                             # net_arch=[256, 128, 64]
                         )
     Algorithm = getattr(sb3, conf.algorithm)
-    model = Algorithm("MlpPolicy", train_env,
-                policy_kwargs=policy_kwargs)
+    model = Algorithm(  "MlpPolicy", train_env,
+                        clip_range=conf.clip_range,
+                        policy_kwargs=policy_kwargs)
     mean_reward, std_reward = evaluate_policy(model, train_env, n_eval_episodes=10)
     print("Before:")
     print(f"\tmean_reward:{mean_reward:,.2f} +/- {std_reward:.2f}")
@@ -57,7 +58,7 @@ def main(conf: DictConfig):
             best_model_save_path='best_model'
         )
     checkpoint_callback = CheckpointCallback(save_freq=1000, save_path='./checkpoints/',
-                                             name_prefix=f"{conf.algorithm}")
+                                             name_prefix=f"rl-{conf.algorithm}")
     callback = CallbackList([checkpoint_callback, eval_callback, ProgressBarCallback()])
 
     model.learn(total_timesteps=conf.n_steps, callback=callback)

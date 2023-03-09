@@ -194,9 +194,14 @@ class SliarEnvironment(gym.Env):
         return np.array(self.state, dtype=np.float32), {}
 
     def action2control(self, action):
-        nu = self.nu_min + (self.nu_max - self.nu_min) * (action[0] + 1.0) / 2.0
-        tau = self.tau_min + (self.tau_max - self.tau_min) * (action[1] + 1.0) / 2.0
-        sigma = self.sigma_min + (self.sigma_max - self.sigma_min) * (action[2] + 1.0) / 2.0
+        if self.continuous:
+            nu = self.nu_min + (self.nu_max - self.nu_min) * (action[0] + 1.0) / 2.0
+            tau = self.tau_min + (self.tau_max - self.tau_min) * (action[1] + 1.0) / 2.0
+            sigma = self.sigma_min + (self.sigma_max - self.sigma_min) * (action[2] + 1.0) / 2.0
+        else:
+            nu = self.nu_min + (self.nu_max - self.nu_min) * action[0]
+            tau = self.tau_min + (self.tau_max - self.tau_min) * action[1]
+            sigma = self.sigma_min + (self.sigma_max - self.sigma_min) * action[2]
         return np.array([nu, tau, sigma], dtype=np.float32)
 
     def step(self, action):
@@ -213,7 +218,7 @@ class SliarEnvironment(gym.Env):
         S0, L0, I0, A0 = self.state
         S, L, I, A = new_state
         self.state = new_state
-        reward = - self.P * I - self.Q * nu ** 2 - self.R * tau ** 2 - self.W * sigma ** 2
+        reward = - self.P * I - self.Q * action[0] ** 2 - self.R * action[1] ** 2 - self.W * action[2] ** 2
         reward *= self.dt
 
         self.rewards.append(reward)

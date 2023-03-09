@@ -1,4 +1,5 @@
 algorithm: PPO
+clip_range: 0.1
 
 sliar:
   _target_: envs.SliarEnvironment
