@@ -218,7 +218,7 @@ class SliarEnvironment(gym.Env):
         S0, L0, I0, A0 = self.state
         S, L, I, A = new_state
         self.state = new_state
-        reward = - self.P * I - self.Q * action[0] ** 2 - self.R * action[1] ** 2 - self.W * action[2] ** 2
+        reward = - self.P * (I / self.population) - self.Q * action[0] ** 2 - self.R * action[1] ** 2 - self.W * action[2] ** 2
         reward *= self.dt
 
         self.rewards.append(reward)
