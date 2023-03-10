@@ -138,6 +138,7 @@ class SliarEnvironment(gym.Env):
                  alpha, tau_min, tau_max, p, eta, epsilon,
                  q, delta, tf, dt, population, P, Q, R, W, continuous):
         self.state = np.array([S0, L0, I0, A0])
+        self.population = population
         self.S0 = S0
         self.I0 = I0
         self.L0 = L0
@@ -218,7 +219,8 @@ class SliarEnvironment(gym.Env):
         S0, L0, I0, A0 = self.state
         S, L, I, A = new_state
         self.state = new_state
-        reward = - self.P * (I / self.population) - self.Q * action[0] ** 2 - self.R * action[1] ** 2 - self.W * action[2] ** 2
+        reward = - self.P * (I / self.population) - self.Q * (nu / self.nu_max) ** 2 \
+                 - self.R * (tau / self.tau_max) ** 2 - self.W * (sigma / self.sigma_max) ** 2
         reward *= self.dt
 
         self.rewards.append(reward)
