@@ -6,6 +6,7 @@ import seaborn as sns
 import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import wandb
 
 from plotly.subplots import make_subplots
 from omegaconf import DictConfig, OmegaConf
@@ -31,6 +32,7 @@ sns.set_theme(style="whitegrid")
 
 @hydra.main(version_base=None, config_path="conf", config_name="ppo_sliar")
 def main(conf: DictConfig):
+    run = wandb.init(project=f"sliar-{conf.train.algorithm}")
     train_env = instantiate(conf.sliar)
     check_env(train_env)
     log_dir = "./sliar_ppo_log"
@@ -40,9 +42,9 @@ def main(conf: DictConfig):
                             # activation_fn=torch.nn.ReLU,
                             # net_arch=[256, 128, 64]
                         )
-    Algorithm = getattr(sb3, conf.algorithm)
+    Algorithm = getattr(sb3, conf.train.algorithm)
     model = Algorithm(  "MlpPolicy", train_env,
-                        clip_range=conf.clip_range,
+                        clip_range=conf.train.clip_range,
                         policy_kwargs=policy_kwargs)
     mean_reward, std_reward = evaluate_policy(model, train_env, n_eval_episodes=10)
     print("Before:")
@@ -58,10 +60,10 @@ def main(conf: DictConfig):
             best_model_save_path='best_model'
         )
     checkpoint_callback = CheckpointCallback(save_freq=1000, save_path='./checkpoints/',
-                                             name_prefix=f"rl-{conf.algorithm}")
+                                             name_prefix=f"rl-{conf.train.algorithm}")
     callback = CallbackList([checkpoint_callback, eval_callback, ProgressBarCallback()])
 
-    model.learn(total_timesteps=conf.n_steps, callback=callback)
+    model.learn(total_timesteps=conf.train.n_steps, callback=callback)
     mean_reward, std_reward = evaluate_policy(model, train_env, n_eval_episodes=10)
     print("After:")
     print(f"\tmean_reward:{mean_reward:,.2f} +/- {std_reward:.2f}")
@@ -72,6 +74,7 @@ def main(conf: DictConfig):
     plt.xlabel('episodes')
     plt.ylabel('The cummulative return')
     plt.savefig(f"figures/reward.png")
+    wandb.log({"reward history": plt})
     plt.close()
 
     # Visualize Controlled sliar Dynamics
@@ -148,6 +151,7 @@ def main(conf: DictConfig):
 
     # Visualize Controlled sliar Dynamics
     if best_reward < max_val:
+        best_reward = max_val
         model = Algorithm.load(f'checkpoints/{best_checkpoint}')
         state, _ = eval_env.reset()
         done = False
@@ -176,6 +180,16 @@ def main(conf: DictConfig):
         plt.subplot(5, 1, 5)
         sns.lineplot(data=df, x='days', y='rewards', color='g')
         plt.savefig(f"figures/best.png")
+        wandb.log({"best policy": plt})
         plt.close()
+
+    wandb.run.summary["best reward"] = best_reward
+    for k, v in conf.train.items():
+        wandb.run.summary[f"train.{k}"] = v
+    for k, v in conf.sliar.items():
+        wandb.run.summary[f"sliar.{k}"] = v
+
+    run.finish()
+
 if __name__ == '__main__':
     main()
