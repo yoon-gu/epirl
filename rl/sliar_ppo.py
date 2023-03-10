@@ -33,6 +33,11 @@ sns.set_theme(style="whitegrid")
 @hydra.main(version_base=None, config_path="conf", config_name="ppo_sliar")
 def main(conf: DictConfig):
     run = wandb.init(project=f"sliar-{conf.train.algorithm}")
+    for k, v in conf.train.items():
+        wandb.run.summary[f"train.{k}"] = v
+    for k, v in conf.sliar.items():
+        wandb.run.summary[f"sliar.{k}"] = v
+
     train_env = instantiate(conf.sliar)
     check_env(train_env)
     log_dir = "./sliar_ppo_log"
@@ -184,10 +189,6 @@ def main(conf: DictConfig):
         plt.close()
 
     wandb.run.summary["best reward"] = best_reward
-    for k, v in conf.train.items():
-        wandb.run.summary[f"train.{k}"] = v
-    for k, v in conf.sliar.items():
-        wandb.run.summary[f"sliar.{k}"] = v
 
     run.finish()
 

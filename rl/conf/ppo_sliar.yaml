@@ -1,5 +1,7 @@
-algorithm: PPO
-clip_range: 0.1
+train:
+  algorithm: PPO
+  clip_range: 0.1
+  n_steps: 5000
 
 sliar:
   _target_: envs.SliarEnvironment
@@ -21,9 +23,9 @@ sliar:
   tf: 300
   dt: 5
   P: 1
-  Q: 1
-  R: 1
-  W: 1
+  Q: 0.01
+  R: 0.01
+  W: 0.01
   continuous: false
 
   nu_min: 0.0
@@ -34,11 +36,6 @@ sliar:
   tau_max: 0.05
   sigma_max: 0.01
 
-n_steps: 5000
-
 hydra:
   job:
     chdir: true
-
-defaults:
-  - override hydra/launcher: joblib
