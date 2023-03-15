@@ -32,7 +32,7 @@ sns.set_theme(style="whitegrid")
 
 @hydra.main(version_base=None, config_path="conf", config_name="ppo_sliar")
 def main(conf: DictConfig):
-    run = wandb.init(project=f"sliar-{conf.train.algorithm}")
+    run = wandb.init(project=f"sliar-{conf.train.algorithm}-{conf.sliar.continuous}")
     for k, v in conf.train.items():
         wandb.run.summary[f"train.{k}"] = v
     for k, v in conf.sliar.items():
@@ -79,15 +79,18 @@ def main(conf: DictConfig):
     plt.xlabel('episodes')
     plt.ylabel('The cummulative return')
     plt.savefig(f"figures/reward.png")
-    wandb.log({"reward history": plt})
+    # wandb.log({"reward history": plt})
     plt.close()
+
+    image = wandb.Image(f"figures/reward.png", caption="Rewards History")
+    wandb.log({"Pic History": image})
 
     # Visualize Controlled sliar Dynamics
     model = Algorithm.load(f'best_model/best_model.zip')
     state, _ = eval_env.reset()
     done = False
     while not done:
-        action, _ = model.predict(state)
+        action, _ = model.predict(state, deterministic=True)
         state, _, done, _, _ = eval_env.step(action)
 
     df = eval_env.dynamics
@@ -121,7 +124,7 @@ def main(conf: DictConfig):
         state, _ = eval_env.reset()
         done = False
         while not done:
-            action, _ = model.predict(state)
+            action, _ = model.predict(state, deterministic=True)
             state, _, done, _, _ = eval_env.step(action)
         df = eval_env.dynamics
 
@@ -161,7 +164,7 @@ def main(conf: DictConfig):
         state, _ = eval_env.reset()
         done = False
         while not done:
-            action, _ = model.predict(state)
+            action, _ = model.predict(state, deterministic=True)
             state, _, done, _, _ = eval_env.step(action)
         df = eval_env.dynamics
         # sns.lineplot(data=df, x='days', y='susceptible')
@@ -185,12 +188,18 @@ def main(conf: DictConfig):
         plt.subplot(5, 1, 5)
         sns.lineplot(data=df, x='days', y='rewards', color='g')
         plt.savefig(f"figures/best.png")
-        wandb.log({"best policy": plt})
+        # wandb.log({f"R = {df.rewards.sum():,.4f}": plt})
         plt.close()
 
+    image = wandb.Image(f"figures/best.png", caption=f"{best_checkpoint}")
+    wandb.log({"Pic Best Reward": image})
     wandb.run.summary["best reward"] = best_reward
 
     run.finish()
 
 if __name__ == '__main__':
     main()
+
+# python sliar_ppo.py train.n_steps=1500000 sliar.continuous=false train.clip_range=0.01,0.05,0.1,0.2,0.5
+# python sliar_ppo.py train.n_steps=1500000 sliar.continuous=true train.clip_range=0.01,0.05,0.1,0.2,0.5
+# python sliar_ppo.py train.n_steps=1500000 sliar.continuous=true train.clip_range=0.1 sliar.Q=0.01,0.025,0.05,0.1
